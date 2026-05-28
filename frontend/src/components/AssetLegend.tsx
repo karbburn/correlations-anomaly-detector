@@ -15,13 +15,13 @@ export function AssetLegend() {
       {ASSETS.map((a) => (
         <div
           key={a.key}
-          className="flex items-center gap-2 px-2.5 py-1 bg-background border border-border-muted rounded-none"
+          className="flex items-center gap-2 px-2.5 py-1 bg-card border border-border-muted rounded-none"
         >
           <span
             className="w-2 h-2 shrink-0 rounded-none"
             style={{ backgroundColor: a.color }}
           />
-          <span className="text-[10px] text-slate-300 font-bold uppercase">{a.label}</span>
+          <span className="text-[10px] text-secondary font-bold uppercase">{a.label}</span>
         </div>
       ))}
     </div>

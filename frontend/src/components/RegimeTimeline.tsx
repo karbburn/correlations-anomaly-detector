@@ -1,15 +1,7 @@
 "use client";
 import { useEffect, useRef, memo } from "react";
 import * as d3 from "d3";
-
-const REGIME_COLORS: Record<string, string> = {
-  strong_positive: "#3b82f6",
-  mild_positive: "rgba(59, 130, 246, 0.5)",
-  neutral: "#1f2937",
-  mild_negative: "rgba(239, 68, 68, 0.5)",
-  strong_negative: "#ef4444",
-  anomaly: "#f59e0b",
-};
+import { useAppStore } from "@/lib/store";
 
 const PAIR_LABELS: Record<string, string> = {
   NIFTY50__USDINR: "Nifty×USD",
@@ -35,8 +27,6 @@ interface Props {
   regimes: Record<string, string[]>;
 }
 
-import { useAppStore } from "@/lib/store";
-
 export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const theme = useAppStore((s) => s.theme);
@@ -44,16 +34,19 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;
 
+    const isDark = theme === "dark";
+
     const activeColors: Record<string, string> = {
-      strong_positive: theme === "light" ? "#1e40af" : "#3b82f6",
-      mild_positive: theme === "light" ? "rgba(30, 64, 175, 0.4)" : "rgba(59, 130, 246, 0.4)",
-      neutral: theme === "light" ? "#cbd5e1" : "#1f2937",
-      mild_negative: theme === "light" ? "rgba(220, 38, 38, 0.4)" : "rgba(239, 68, 68, 0.4)",
-      strong_negative: theme === "light" ? "#dc2626" : "#ef4444",
-      anomaly: theme === "light" ? "#b45309" : "#f59e0b",
+      strong_positive: isDark ? "#10b981" : "#047857",
+      mild_positive: isDark ? "rgba(16, 185, 129, 0.5)" : "#6ee7b7",
+      neutral: isDark ? "#0d1f18" : "#e4dfd6",
+      mild_negative: isDark ? "rgba(239, 68, 68, 0.5)" : "#fca5a5",
+      strong_negative: isDark ? "#ef4444" : "#dc2626",
+      anomaly: isDark ? "#f59e0b" : "#b45309",
     };
 
-    const labelColor = theme === "light" ? "#475569" : "#8c909f";
+    const labelColor = isDark ? "#2dd4bf" : "#6b6b6b";
+    const dateLabelColor = isDark ? "#5eead4" : "#999999";
 
     const step = Math.max(1, Math.floor(dates.length / 200));
     const sampledDates = dates.filter((_, i) => i % step === 0);
@@ -94,7 +87,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("text-anchor", "middle")
         .attr("font-size", 8)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", "#64748b")
+        .attr("fill", dateLabelColor)
         .attr("transform", `rotate(-45, ${i * cellW + cellW / 2}, ${pairs.length * cellH + 16})`)
         .text(new Date(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
     });
@@ -105,14 +98,19 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
 
       sampledIndices.forEach((origIdx, si) => {
         const regime = pairRegimes[origIdx] ?? "neutral";
+        const color = activeColors[regime] ?? activeColors.neutral;
+        const isAnomaly = regime === "anomaly";
+
         g.append("rect")
           .attr("x", si * cellW)
           .attr("y", pi * cellH)
           .attr("width", cellW)
           .attr("height", cellH - 1)
           .attr("rx", 0)
-          .attr("fill", activeColors[regime] ?? activeColors.neutral)
-          .attr("opacity", 0.9);
+          .attr("fill", color)
+          .attr("opacity", isAnomaly ? 1.0 : 0.9)
+          .attr("stroke", isAnomaly ? color : "none")
+          .attr("stroke-width", isAnomaly ? 0.5 : 0);
       });
     });
 

@@ -54,13 +54,13 @@ function Dashboard() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <h1 className="text-xl font-bold tracking-tight text-white">
+                  <h1 className="text-xl font-bold tracking-tight text-foreground">
                     Cross-Asset Correlations
                     <span className="ml-2 text-sm font-normal text-accent-primary">
                       Anomaly Detector
                     </span>
                   </h1>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-dim mt-0.5">
                     {matrixData
                       ? `As of ${matrixData.as_of_date} · ${matrixData.window}D rolling window`
                       : "Loading..."}
@@ -83,7 +83,7 @@ function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Correlation Heatmap */}
               <div className="bg-background border border-border-muted p-5 rounded-none">
-                <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
+                <h2 className="text-xs font-semibold text-muted mb-4 uppercase tracking-wider font-mono">
                   [CORRELATION_MATRIX]
                 </h2>
                 {matrixLoading ? (
@@ -94,14 +94,13 @@ function Dashboard() {
                   <CorrelationMatrix
                     matrix={matrixData.matrix}
                     zscoreMatrix={matrixData.zscore_matrix}
-                    anomalyFlags={matrixData.anomaly_flags}
                     threshold={threshold}
                     onPairSelect={(a1, a2) => selectPair(a1, a2)}
                   />
                 ) : (
-                  <p className="text-slate-600 text-xs font-mono">No matrix data available</p>
+                  <p className="text-dim text-xs font-mono">No matrix data available</p>
                 )}
-                <p className="text-[9px] text-slate-600 mt-4 text-center font-mono">
+                <p className="text-[9px] text-dim mt-4 text-center font-mono">
                   &gt;&gt; SELECT CELL TO PLOT HISTORICAL DRILLDOWN &lt;&lt;
                 </p>
               </div>
@@ -132,7 +131,7 @@ function Dashboard() {
             {/* Regime Timeline */}
             {regimeData && (
               <div className="bg-background border border-border-muted p-5 rounded-none">
-                <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
+                <h2 className="text-xs font-semibold text-muted mb-4 uppercase tracking-wider font-mono">
                   [REGIME_TIMELINE]
                 </h2>
                 <RegimeTimeline
@@ -146,7 +145,7 @@ function Dashboard() {
 
           {/* Footer */}
           <footer className="border-t border-border-muted mt-12 bg-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-slate-600">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-dim">
               <p>
                 Cross-Asset Correlations Anomaly Detector v2.0
               </p>

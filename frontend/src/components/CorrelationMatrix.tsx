@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
-import { interpolateRdYlGn } from "d3-scale-chromatic";
 import { ASSETS } from "@/lib/types";
 
 import { useAppStore } from "@/lib/store";
@@ -11,7 +10,6 @@ const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"]
 interface Props {
   matrix: number[][];
   zscoreMatrix: number[][];
-  anomalyFlags: boolean[][];
   threshold: number;
   onPairSelect: (a1: string, a2: string) => void;
 }
@@ -19,7 +17,6 @@ interface Props {
 export const CorrelationMatrix = memo(function CorrelationMatrix({
   matrix,
   zscoreMatrix,
-  anomalyFlags,
   threshold,
   onPairSelect,
 }: Props) {
@@ -43,12 +40,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
       .domain([-1, 0, 1])
       .range(
         theme === "light"
-          ? ["#dc2626", "#e2e8f0", "#1e40af"]
+          ? ["#dc2626", "#d4cfc6", "#1e40af"]
           : ["#ef4444", "#1f2937", "#3b82f6"]
       );
 
     const amberColor = theme === "light" ? "#b45309" : "#f59e0b";
-    const labelColor = theme === "light" ? "#475569" : "#8c909f";
+    const labelColor = theme === "light" ? "#6b6b6b" : "#8c909f";
 
     const g = svg
       .append("g")
@@ -81,7 +78,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
       ASSETS.forEach((a2, j) => {
         const val = matrix[i][j];
         const z = zscoreMatrix[i][j];
-        const isAnomaly = anomalyFlags[i][j];
+        const isAnomaly = Math.abs(z) > threshold;
         const isDiag = i === j;
 
         const cell = g
@@ -98,9 +95,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           .attr("width", cellSize - 2)
           .attr("height", cellSize - 2)
           .attr("rx", 0)
-          .attr("fill", isDiag ? (theme === "light" ? "#f1f5f9" : "#10131a") : colorScale(val))
+          .attr("fill", isDiag ? (theme === "light" ? "#ede8df" : "#10131a") : colorScale(val))
           .attr("opacity", isDiag ? 0.7 : 0.9)
-          .attr("stroke", isDiag ? (theme === "light" ? "#cbd5e1" : "#2d2d2d") : "none")
+          .attr("stroke", isDiag ? (theme === "light" ? "#d4cfc6" : "#2d2d2d") : "none")
           .attr("stroke-width", isDiag ? 1 : 0);
 
         if (!isDiag) {
@@ -111,7 +108,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 1)
-                .attr("stroke", theme === "light" ? "#1e40af" : "#3b82f6")
+                .attr("stroke", theme === "light" ? "#047857" : "#3b82f6")
                 .attr("stroke-width", 1.5);
             })
             .on("mouseleave", function () {
@@ -147,7 +144,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
 
         if (!isDiag) {
-          const textColor = Math.abs(val) > 0.4 ? "#ffffff" : (theme === "light" ? "#0f172a" : "#ffffff");
+          const textColor = Math.abs(val) > 0.6 ? "#ffffff" : (theme === "light" ? "#1a1a1a" : "#ffffff");
 
           cell
             .append("text")
@@ -168,7 +165,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 9)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", isAnomaly ? amberColor : (theme === "light" ? "#475569" : "#8c909f"))
+            .attr("fill", isAnomaly ? amberColor : (theme === "light" ? "#6b6b6b" : "#8c909f"))
             .text(`z=${z.toFixed(1)}`);
         } else {
           cell
@@ -179,12 +176,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 11)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", theme === "light" ? "#94a3b8" : "#424754")
+            .attr("fill", theme === "light" ? "#999999" : "#424754")
             .text("1.00");
         }
       });
     });
-  }, [matrix, zscoreMatrix, anomalyFlags, threshold, onPairSelect, theme]);
+  }, [matrix, zscoreMatrix, threshold, onPairSelect, theme]);
 
   useEffect(() => {
     render();

@@ -1,38 +1,73 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --border-tactical: #cbd5e1;
-  --cyber-blue: #1e40af;
-  --cyber-amber: #b45309;
-  --cyber-red: #dc2626;
-  --card-bg: #ffffff;
+  --bg-primary: #f5f0e8;
+  --bg-secondary: #ffffff;
+  --bg-elevated: #ede8df;
+  --bg-surface: #e4dfd6;
+
+  --text-primary: #1a1a1a;
+  --text-secondary: #3d3d3d;
+  --text-muted: #6b6b6b;
+  --text-dim: #999999;
+
+  --border-default: #d4cfc6;
+  --border-dim: #e4dfd6;
+
+  --accent-primary: #047857;
+  --accent-primary-hover: #059669;
+  --accent-teal: #0f766e;
+  --accent-cyan: #0e7490;
+  --accent-amber: #b45309;
+  --accent-red: #dc2626;
 }
 
 .dark {
-  --background: #0a0a0b;
-  --foreground: #d1d5db;
-  --border-tactical: #2d2d2d;
-  --cyber-blue: #3b82f6;
-  --cyber-amber: #f59e0b;
-  --cyber-red: #ef4444;
-  --card-bg: #0a0a0b;
+  --bg-primary: #060d0a;
+  --bg-secondary: #0a1612;
+  --bg-elevated: #0d1f18;
+  --bg-surface: #112a20;
+
+  --text-primary: #d1fae5;
+  --text-secondary: #6ee7b7;
+  --text-muted: #5eead4;
+  --text-dim: #2dd4bf;
+
+  --border-default: #1a3a2e;
+  --border-dim: #0f2b1f;
+
+  --accent-primary: #10b981;
+  --accent-primary-hover: #34d399;
+  --accent-teal: #14b8a6;
+  --accent-cyan: #22d3ee;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-border-tactical: var(--border-tactical);
-  --color-cyber-blue: var(--cyber-blue);
-  --color-cyber-amber: var(--cyber-amber);
-  --color-cyber-red: var(--cyber-red);
-  --color-card-bg: var(--card-bg);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-card: var(--bg-secondary);
+  --color-elevated: var(--bg-elevated);
+  --color-surface: var(--bg-surface);
+
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-dim: var(--text-dim);
+
+  --color-border-muted: var(--border-default);
+  --color-border-dim: var(--border-dim);
+
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-red: var(--accent-red);
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
-

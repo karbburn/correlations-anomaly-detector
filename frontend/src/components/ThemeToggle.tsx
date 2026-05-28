@@ -37,7 +37,7 @@ export function ThemeToggle() {
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer",
           theme === "dark"
             ? "bg-accent-primary text-black"
-            : "text-slate-500 hover:text-foreground hover:bg-slate-500/10"
+            : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
         DARK
@@ -48,7 +48,7 @@ export function ThemeToggle() {
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer",
           theme === "light"
             ? "bg-accent-primary text-black"
-            : "text-slate-500 hover:text-foreground hover:bg-slate-500/10"
+            : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
         LIGHT

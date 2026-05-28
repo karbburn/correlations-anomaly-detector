@@ -57,12 +57,12 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         {status === "error" ? (
           <>
             <div className="w-12 h-12 mx-auto rounded-full bg-red-500/10 flex items-center justify-center">
-              <svg className="w-6 h-6 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-6 h-6 text-accent-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-red-400 text-base font-medium">Backend unavailable</p>
-            <p className="text-slate-500 text-sm">Try refreshing the page in a minute.</p>
+            <p className="text-accent-red text-base font-medium">Backend unavailable</p>
+            <p className="text-dim text-sm">Try refreshing the page in a minute.</p>
           </>
         ) : (
           <>
@@ -70,12 +70,12 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
               <div className="absolute inset-0 rounded-full border-2 border-accent-primary/30" />
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent-teal animate-spin" />
             </div>
-            <p className="text-white text-lg font-medium">
+            <p className="text-foreground text-lg font-medium">
               {status === "checking" ? "Connecting to backend..." : "Warming up correlations..."}
             </p>
-            <p className="text-slate-500 text-sm tabular-nums">{elapsed}s</p>
+            <p className="text-dim text-sm tabular-nums">{elapsed}s</p>
             {elapsed > 10 && (
-              <p className="text-slate-600 text-xs">
+              <p className="text-muted text-xs">
                 The backend is waking from sleep. This only happens once — subsequent loads are instant.
               </p>
             )}
