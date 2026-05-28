@@ -4,6 +4,7 @@ Health check endpoint — no Cache-Control (always fresh).
 
 from fastapi import APIRouter
 from app.services.cache import is_cache_warm, get_pair_corrs, get_returns, get_staleness
+from app.scheduler import scheduler
 
 router = APIRouter()
 
@@ -32,6 +33,7 @@ async def health():
     return {
         "status": "ok",
         "startup_complete": is_cache_warm(),
+        "scheduler_running": scheduler.running,
         "data_freshness": {
             "gsec_stale": get_staleness("gsec_stale"),
             "fii_stale": get_staleness("fii_stale"),
