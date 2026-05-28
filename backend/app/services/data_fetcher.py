@@ -179,8 +179,8 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
     logger.error("No G-Sec cache available — generating synthetic data")
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
-    np.random.seed(42)
-    noise = np.random.randn(len(dates)) * 0.02  # ~2bps daily moves
+    rng = np.random.default_rng(42)
+    noise = rng.normal(0, 0.02, size=len(dates))  # ~2bps daily moves
     series = pd.Series(noise, index=dates, name="GSEC10Y")
     return series
 
@@ -270,8 +270,8 @@ def _fallback_fii(start: str) -> pd.Series:
     logger.error("No FII cache — generating synthetic data")
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
-    np.random.seed(100)
-    flows = np.random.normal(loc=0.0, scale=1.0, size=len(dates))
+    rng = np.random.default_rng(100)
+    flows = rng.normal(loc=0.0, scale=1.0, size=len(dates))
     return pd.Series(flows, index=dates, name="FII_FLOW")
 
 
