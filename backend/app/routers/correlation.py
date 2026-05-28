@@ -70,7 +70,7 @@ async def correlation_matrix(
             continue
         a1, a2 = parts
         series = pair_corrs[col].dropna()
-        z_series = compute_zscore_series(series, settings.HIST_WINDOW)
+        z_series, _, _ = compute_zscore_series(series, settings.HIST_WINDOW)
         if row.name in z_series.index:
             z_val = float(z_series.loc[row.name])
             if not np.isnan(z_val):
@@ -130,7 +130,7 @@ async def correlation_timeseries(
     if start:
         series = series[series.index >= start]
 
-    z_series = compute_zscore_series(series, settings.HIST_WINDOW)
+    z_series, _, _ = compute_zscore_series(series, settings.HIST_WINDOW)
 
     dates = [str(d.date()) if hasattr(d, "date") else str(d) for d in series.index]
     correlations = [round(float(v), 4) if not np.isnan(v) else None for v in series.values]

@@ -14,7 +14,7 @@ import pandas as pd
 def compute_zscore_series(
     corr_series: pd.Series,
     hist_window: int = 252,
-) -> pd.Series:
+) -> tuple:
     """
     Z-score each rolling correlation value against its trailing history.
 
@@ -23,6 +23,8 @@ def compute_zscore_series(
     Clips output to [-10, 10] to prevent display explosion when std is tiny
     (e.g. a pair locked at 0.99 for months will have near-zero std and
     any small move will produce extreme z-scores).
+
+    Returns (zscore, mean, std) tuple to avoid redundant computation.
     """
     mean = corr_series.rolling(window=hist_window, min_periods=60).mean()
     std = corr_series.rolling(window=hist_window, min_periods=60).std()
@@ -31,7 +33,7 @@ def compute_zscore_series(
     std = std.where(std > 1e-6, np.nan)
 
     zscore = (corr_series - mean) / std
-    return zscore.clip(-10, 10)
+    return zscore.clip(-10, 10), mean, std
 
 
 def detect_anomalies(
@@ -52,9 +54,7 @@ def detect_anomalies(
         if len(corr) < hist_window:
             continue  # not enough history for meaningful z-scores
 
-        z = compute_zscore_series(corr, hist_window)
-        mean = corr.rolling(hist_window, min_periods=60).mean()
-        std = corr.rolling(hist_window, min_periods=60).std()
+        z, mean, std = compute_zscore_series(corr, hist_window)
 
         flagged = z[z.abs() > threshold].dropna()
 

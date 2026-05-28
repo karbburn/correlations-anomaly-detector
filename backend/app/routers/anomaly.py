@@ -95,7 +95,7 @@ async def regime_history(
     regimes = {}
     for col in pair_names:
         corr_series = clean[col]
-        z_series = compute_zscore_series(corr_series, settings.HIST_WINDOW)
+        z_series, _, _ = compute_zscore_series(corr_series, settings.HIST_WINDOW)
 
         regimes[col] = [
             classify_regime(
