@@ -70,6 +70,7 @@ app.add_middleware(
     allow_origins=settings.allowed_origins_list,
     allow_methods=["GET"],
     allow_headers=["*"],
+    allow_credentials=True,
 )
 
 app.include_router(health.router,       prefix="/api")
