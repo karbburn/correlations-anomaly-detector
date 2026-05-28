@@ -2,7 +2,9 @@
 FastAPI application entry point with lifespan startup precomputation.
 """
 
+import json
 import logging
+import sys
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -18,36 +20,49 @@ from app.scheduler import start_scheduler
 from app.services.cache import warm_cache
 from app.routers import health, correlation, anomaly
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s — %(message)s",
-)
-logger = logging.getLogger(__name__)
 settings = get_settings()
+
+
+class StructuredFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        log_entry = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry)
+
+
+if settings.LOG_FORMAT == "json":
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(StructuredFormatter())
+    logging.basicConfig(level=settings.LOG_LEVEL.upper(), handlers=[handler])
+else:
+    logging.basicConfig(
+        level=settings.LOG_LEVEL.upper(),
+        format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+    )
+
+logger = logging.getLogger(__name__)
 
 limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Runs on startup: fetch data + pre-compute correlations for all 3 windows.
-    This means the first real request from the frontend is fast (~100ms)
-    rather than triggering a 30–60 second cold computation.
-    """
-        logger.info("Warming cache on startup...")
+    logger.info("Warming cache on startup...")
     try:
         await warm_cache()
         logger.info("Cache warm. Server ready.")
     except Exception as e:
         logger.error(f"Cache warm failed: {e}. Server starting anyway.")
-        # Don't crash on startup — endpoints will return 503 with clear message
 
-    start_scheduler()  # background refresh every hour
+    start_scheduler()
+    yield
 
-    yield  # server runs here
-
-    # Shutdown — nothing persistent to clean up
     logger.info("Shutting down...")
 
 

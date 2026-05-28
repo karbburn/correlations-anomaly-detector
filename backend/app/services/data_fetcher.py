@@ -11,31 +11,22 @@ import numpy as np
 import pandas as pd
 import requests
 import yfinance as yf
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from app.config import get_settings
-from app.services.cache import set_staleness
+from app.services.circuit_breaker import with_circuit_breaker, CircuitBreakerError
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 
-# ---------------------------------------------------------------------------
-# Custom exceptions
-# ---------------------------------------------------------------------------
-
 class DataUnavailableError(Exception):
-    """Raised when no data source (primary + fallback) can provide data."""
     pass
 
 
 class DataQualityError(Exception):
-    """Raised when data fails quality checks (e.g. >20% missing)."""
     pass
 
-
-# ---------------------------------------------------------------------------
-# Asset definitions
-# ---------------------------------------------------------------------------
 
 ASSETS = {
     "NIFTY50":  {"ticker": "^NSEI",       "source": "yfinance"},
@@ -48,19 +39,12 @@ ASSETS = {
 
 YFINANCE_TICKERS = ["^NSEI", "INR=X", "GOLDBEES.NS", "BZ=F"]
 
-# Canonical column order — yfinance sorts tickers alphabetically
-# BZ=F, GOLDBEES.NS, INR=X, ^NSEI  →  CRUDE, GOLD, USDINR, NIFTY50
 YF_COL_MAP = {
     "BZ=F":        "CRUDE",
     "GOLDBEES.NS": "GOLD",
     "INR=X":       "USDINR",
     "^NSEI":       "NIFTY50",
 }
-
-
-# ---------------------------------------------------------------------------
-# NSE headers — required for two-step session
-# ---------------------------------------------------------------------------
 
 NSE_HEADERS = {
     "User-Agent": (
@@ -73,20 +57,30 @@ NSE_HEADERS = {
     "Referer": "https://www.nseindia.com/",
 }
 
+YFINANCE_TIMEOUT = 60
+FBIL_TIMEOUT = 30
+NSE_TIMEOUT = 20
 
-# ---------------------------------------------------------------------------
-# 1. yfinance — 4 price assets
-# ---------------------------------------------------------------------------
+
+def _ensure_unique_index(series: pd.Series, name: str) -> pd.Series:
+    """Deduplicate and validate index. Returns series with unique index."""
+    if series.index.duplicated().any():
+        n_dups = series.index.duplicated().sum()
+        logger.warning(f"{name}: {n_dups} duplicate index values found — keeping first")
+        series = series[~series.index.duplicated(keep="first")]
+    if not series.index.is_monotonic_increasing:
+        series = series.sort_index()
+    return series
+
+
+
+
 
 def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame:
-    """
-    Download daily close prices for the 4 yfinance assets.
-    Returns a DataFrame with columns named by our canonical asset names.
-    """
     if end is None:
         end = datetime.date.today().strftime("%Y-%m-%d")
 
-    logger.info(f"Fetching yfinance prices [{start} → {end}]...")
+    logger.info(f"Fetching yfinance prices [{start} -> {end}]...")
     try:
         data = yf.download(
             YFINANCE_TICKERS,
@@ -94,16 +88,25 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
             end=end,
             auto_adjust=True,
             progress=False,
+            timeout=YFINANCE_TIMEOUT,
         )
-        # yf.download with multiple tickers returns MultiIndex columns
+        if data.empty:
+            raise DataUnavailableError("yfinance returned empty DataFrame")
+
         if isinstance(data.columns, pd.MultiIndex):
             prices = data["Close"]
         else:
             prices = data
 
-        # Rename columns to canonical asset names
         prices = prices.rename(columns=YF_COL_MAP)
         prices = prices.ffill(limit=3)
+
+        expected = set(YF_COL_MAP.values())
+        actual = set(prices.columns)
+        missing = expected - actual
+        if missing:
+            logger.warning(f"yfinance: missing columns {missing}")
+
         logger.info(f"  yfinance: {prices.shape[0]} rows, {list(prices.columns)}")
         return prices
 
@@ -112,29 +115,76 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
         raise DataUnavailableError(f"yfinance download failed: {e}") from e
 
 
-# ---------------------------------------------------------------------------
-# 2. FBIL — G-Sec 10Y yield (primary source)
-# ---------------------------------------------------------------------------
+@with_circuit_breaker("yfinance")
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10),
+    retry=retry_if_exception_type(DataUnavailableError),
+    reraise=True,
+    before_sleep=lambda retry_state: logger.warning(
+        f"yfinance retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+    ),
+)
+def _fetch_yfinance_with_circuit(start: str, end: str) -> pd.DataFrame:
+    return fetch_yfinance_prices(start, end)
 
+
+def _yfinance_fallback(start: str) -> pd.DataFrame:
+    """Generate synthetic price data when all sources fail."""
+    logger.error("All yfinance attempts failed — generating synthetic data")
+    from pathlib import Path
+    cache_path = Path(settings.CACHE_DIR) / "prices_last_known.parquet"
+    if cache_path.exists():
+        logger.warning("Serving stale price cache")
+        from app.services.cache import set_staleness
+        set_staleness("prices_stale", True)
+        return pd.read_parquet(cache_path)
+
+    logger.error("No price cache — generating synthetic prices")
+    end = datetime.date.today().strftime("%Y-%m-%d")
+    dates = pd.bdate_range(start, end)
+    n = len(dates)
+    base = 100.0
+    rng = np.random.default_rng(42)
+    data = {}
+    for asset in YF_COL_MAP.values():
+        returns = rng.normal(0.0005, 0.01, n)
+        data[asset] = base * (1 + returns).cumprod()
+    df = pd.DataFrame(data, index=dates)
+    logger.warning(f"  Synthetic prices: {df.shape[0]} rows")
+    return df
+
+
+def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
+    try:
+        return _fetch_yfinance_with_circuit(start, end)
+    except (CircuitBreakerError, DataUnavailableError) as e:
+        logger.warning(f"yfinance unavailable ({e}). Using fallback.")
+        return _yfinance_fallback(start)
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10),
+    reraise=True,
+    retry=retry_if_exception_type(DataUnavailableError),
+    before_sleep=lambda retry_state: logger.warning(
+        f"FBIL retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+    ),
+)
 def fetch_fbil_gsec(start: str) -> pd.Series:
-    """
-    Fetch 10Y G-Sec benchmark yield from FBIL API (primary).
-    Returns first-differenced series (daily bps change).
-    """
     logger.info("Fetching G-Sec yield from FBIL...")
     try:
         response = requests.get(
             "https://fbil.org.in/api/index.php/GsecBenchmark",
-            timeout=15,
+            timeout=FBIL_TIMEOUT,
         )
         response.raise_for_status()
         data = response.json()
 
-        # FBIL returns { "data": [{"date": "...", "rate": "..."}, ...] }
         records = data.get("data", data)
         df = pd.DataFrame(records)
 
-        # Find date and rate columns (may vary in naming)
         date_col = next((c for c in df.columns if "date" in c.lower()), df.columns[0])
         rate_col = next((c for c in df.columns if "rate" in c.lower() or "yield" in c.lower()), df.columns[1])
 
@@ -143,70 +193,66 @@ def fetch_fbil_gsec(start: str) -> pd.Series:
         series = df[rate_col].astype(float)
         series.name = "GSEC10Y"
 
-        # First difference: daily bps change (not pct_change)
         diff = series.diff()
-        result = diff[diff.index >= start]
+        result = _ensure_unique_index(diff[diff.index >= start], "GSEC10Y")
         logger.info(f"  FBIL G-Sec: {len(result)} data points")
         return result
 
     except Exception as e:
         logger.warning(f"FBIL fetch failed: {e}. Trying RBI fallback...")
-        return fetch_rbi_gsec_fallback(start)
+        raise DataUnavailableError(f"FBIL unavailable: {e}")
+
+
+@with_circuit_breaker("gsec")
+def _fetch_fbil_with_circuit(start: str) -> pd.Series:
+    return fetch_fbil_gsec(start)
 
 
 def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
-    """
-    RBI fallback — serves last known cached data.
-    RBI bulletin requires POST params and is fragile; we use the cache file.
-    """
     from pathlib import Path
     cache_path = Path(settings.CACHE_DIR) / "gsec_last_known.parquet"
 
     if cache_path.exists():
         logger.warning("Serving stale G-Sec cache (FBIL was down)")
+        from app.services.cache import set_staleness
         set_staleness("gsec_stale", True)
         df = pd.read_parquet(cache_path)
         series = df.squeeze()
         series.name = "GSEC10Y"
-        return series[series.index >= start]
+        result = _ensure_unique_index(series[series.index >= start], "GSEC10Y (cached)")
+        return result
 
-    # Last resort: generate synthetic data so the app doesn't crash
     logger.error("No G-Sec cache available — generating synthetic data")
+    from app.services.cache import set_staleness
     set_staleness("gsec_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
-    rng = np.random.default_rng(42)
-    noise = rng.normal(0, 0.02, size=len(dates))  # ~2bps daily moves
+    rng = np.random.default_rng(43)
+    noise = rng.normal(0, 0.02, size=len(dates))
     series = pd.Series(noise, index=dates, name="GSEC10Y")
     return series
 
 
-# ---------------------------------------------------------------------------
-# 3. NSE — FII/DII Net Flow (two-step session)
-# ---------------------------------------------------------------------------
-
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10),
+    reraise=True,
+    retry=retry_if_exception_type(DataUnavailableError),
+    before_sleep=lambda retry_state: logger.warning(
+        f"NSE retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+    ),
+)
 def fetch_nse_fii(start: str) -> pd.Series:
-    """
-    Two-step NSE fetch: establish session cookie first, then hit the API.
-    Returns z-score normalized daily FII net flow.
-
-    Why z-score here?
-      FII flow is already a flow (₹ crore/day), not a cumulative level.
-      pct_change() is meaningless on flows that swing +/-.
-      Z-scoring makes the series dimensionless and comparable.
-    """
     logger.info("Fetching FII net flow from NSE (two-step session)...")
     try:
         session = requests.Session()
 
-        # Step 1: Establish cookie session
         session.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10)
 
-        # Step 2: Hit the actual API
         response = session.get(
             "https://www.nseindia.com/api/fiidiiTradeReact",
             headers=NSE_HEADERS,
-            timeout=10,
+            timeout=NSE_TIMEOUT,
         )
         response.raise_for_status()
         data = response.json()
@@ -214,7 +260,6 @@ def fetch_nse_fii(start: str) -> pd.Series:
         records = []
         for item in data:
             try:
-                # FII net purchase is typically the first entry in fiiDii array
                 fii_entry = item.get("fiiDii", [{}])[0]
                 net_val = float(fii_entry.get("netVal", 0))
                 date = pd.to_datetime(item["date"], format="%d-%b-%Y")
@@ -227,44 +272,40 @@ def fetch_nse_fii(start: str) -> pd.Series:
 
         df = pd.DataFrame(records).set_index("date").sort_index()
         series = df["fii_net"]
+        series = _ensure_unique_index(series, "FII_FLOW (raw)")
         series = series[series.index >= start]
         series.name = "FII_FLOW"
 
-        # Z-score normalize: (x - rolling_mean) / rolling_std
         normalized = _zscore_normalize_flow(series)
         logger.info(f"  NSE FII: {len(normalized)} data points (z-scored)")
         return normalized
 
     except Exception as e:
         logger.warning(f"NSE FII fetch failed: {e}. Using synthetic fallback.")
-        return _fallback_fii(start)
+        raise DataUnavailableError(f"NSE FII unavailable: {e}")
 
 
-def _zscore_normalize_flow(series: pd.Series, lookback: int = 252) -> pd.Series:
-    """
-    Z-score the raw flow series using a rolling 252-day window.
-    Makes the flow dimensionless and comparable across regimes.
-    """
-    rolling_mean = series.rolling(lookback, min_periods=60).mean()
-    rolling_std = series.rolling(lookback, min_periods=60).std()
-    rolling_std = rolling_std.where(rolling_std > 1e-6, np.nan)
-    return (series - rolling_mean) / rolling_std
+@with_circuit_breaker("fii")
+def _fetch_fii_with_circuit(start: str) -> pd.Series:
+    return fetch_nse_fii(start)
 
 
 def _fallback_fii(start: str) -> pd.Series:
-    """Synthetic FII fallback so the app never crashes on data unavailability."""
     from pathlib import Path
     cache_path = Path(settings.CACHE_DIR) / "fii_last_known.parquet"
 
     if cache_path.exists():
         logger.warning("Serving stale FII cache")
+        from app.services.cache import set_staleness
         set_staleness("fii_stale", True)
         df = pd.read_parquet(cache_path)
         series = df.squeeze()
         series.name = "FII_FLOW"
-        return series[series.index >= start]
+        result = _ensure_unique_index(series[series.index >= start], "FII_FLOW (cached)")
+        return result
 
     logger.error("No FII cache — generating synthetic data")
+    from app.services.cache import set_staleness
     set_staleness("fii_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
@@ -273,52 +314,85 @@ def _fallback_fii(start: str) -> pd.Series:
     return pd.Series(flows, index=dates, name="FII_FLOW")
 
 
-# ---------------------------------------------------------------------------
-# 4. Master DataFrame builder
-# ---------------------------------------------------------------------------
+def _zscore_normalize_flow(series: pd.Series, lookback: int = 252) -> pd.Series:
+    if len(series) < 60:
+        logger.warning(f"  {series.name}: too few points ({len(series)}) for z-score — using raw")
+        series = series.copy()
+        series.name = "FII_FLOW"
+        return series
+    rolling_mean = series.rolling(lookback, min_periods=60).mean()
+    rolling_std = series.rolling(lookback, min_periods=60).std()
+    rolling_std = rolling_std.where(rolling_std > 1e-6, np.nan)
+    if rolling_std.isna().all():
+        logger.warning(f"  {series.name}: z-scored all NaN — using raw instead")
+        series = series.copy()
+        series.name = "FII_FLOW"
+        return series
+    return (series - rolling_mean) / rolling_std
+
+
+def _validate_dataframe(df: pd.DataFrame, name: str):
+    if df.empty:
+        raise DataQualityError(f"{name} is empty")
+    for col in df.columns:
+        missing_pct = df[col].isna().mean()
+        if missing_pct > 0.20:
+            raise DataQualityError(
+                f"{name}: {col} has {missing_pct:.1%} missing values"
+            )
+
 
 def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = None) -> pd.DataFrame:
-    """
-    Fetch all assets, align on the NIFTY50 trading calendar,
-    and return a clean DataFrame ready for the correlation engine.
-    """
     if start is None:
         start = settings.DATA_START_DATE
     if end is None:
         end = datetime.date.today().strftime("%Y-%m-%d")
 
-    # 1. Fetch price assets
-    prices = fetch_yfinance_prices(start, end)
-
-    # 2. Convert prices to daily returns
+    prices = _fetch_yfinance_safe(start, end)
+    _validate_dataframe(prices, "prices")
     returns = prices.pct_change()
 
-    # 3. Use NIFTY50 actual trading dates as master calendar
-    #    This correctly excludes Indian market holidays
     nifty_returns = returns["NIFTY50"].dropna()
     master_index = nifty_returns.index
 
-    # 4. Fetch non-price series
-    gsec_diff = fetch_fbil_gsec(start=start)
-    fii_norm = fetch_nse_fii(start=start)
+    gsec_diff = _fetch_fbil_safe(start)
+    fii_norm = _fetch_fii_safe(start)
 
-    # 5. Align everything to master index
+    gsec_diff = _ensure_unique_index(gsec_diff, "GSEC10Y")
+    fii_norm = _ensure_unique_index(fii_norm, "FII_FLOW")
+
     df = returns.reindex(master_index)
-    df["GSEC10Y"] = gsec_diff.reindex(master_index).ffill(limit=5)
-    df["FII_FLOW"] = fii_norm.reindex(master_index).ffill(limit=3)
 
-    # 6. Validate — fail loudly if any asset has >20% missing
-    for col in df.columns:
-        missing_pct = df[col].isna().mean()
-        if missing_pct > 0.20:
-            logger.error(f"{col} has {missing_pct:.1%} missing values")
-            raise DataQualityError(
-                f"{col} has {missing_pct:.1%} missing values — "
-                "check data source before computing correlations"
-            )
+    if gsec_diff is not None and not gsec_diff.empty:
+        df["GSEC10Y"] = gsec_diff.reindex(master_index).ffill(limit=5)
+    if fii_norm is not None and not fii_norm.empty:
+        df["FII_FLOW"] = fii_norm.reindex(master_index).ffill(limit=3)
 
-    # 7. Drop rows where ALL values are NaN
+    _validate_dataframe(df, "master")
     df = df.dropna(how="all")
 
-    logger.info(f"Master DataFrame: {df.shape[0]} rows × {df.shape[1]} columns")
+    logger.info(f"Master DataFrame: {df.shape[0]} rows x {df.shape[1]} columns")
     return df
+
+
+def _fetch_fbil_safe(start: str) -> pd.Series:
+    try:
+        return _fetch_fbil_with_circuit(start)
+    except (CircuitBreakerError, DataUnavailableError) as e:
+        logger.warning(f"FBIL unavailable ({e}). Using fallback.")
+        return fetch_rbi_gsec_fallback(start)
+
+
+def _fetch_fii_safe(start: str) -> pd.Series:
+    try:
+        result = _fetch_fii_with_circuit(start)
+        if result is not None and not result.empty and result.dropna().shape[0] >= 10:
+            return result
+        if result is not None and not result.empty:
+            logger.warning(
+                f"NSE FII: only {result.dropna().shape[0]} valid points — falling back to synthetic"
+            )
+        return _fallback_fii(start)
+    except (CircuitBreakerError, DataUnavailableError) as e:
+        logger.warning(f"NSE FII unavailable ({e}). Using fallback.")
+        return _fallback_fii(start)
