@@ -1,9 +1,5 @@
 """
 FastAPI application entry point with lifespan startup precomputation.
-
-v2: uses async lifespan context manager to pre-fetch data and pre-compute
-all 3 correlation windows before the first request arrives. This eliminates
-the 30-60 second cold-start delay that would hit the first user.
 """
 
 import logging

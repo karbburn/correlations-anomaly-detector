@@ -32,103 +32,118 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
     date,
     correlation: data.correlations[i],
     zscore: data.zscores[i],
-    isAnomaly: data.anomaly_flags[i],
+    anomalyRegion: data.anomaly_flags[i] ? 1 : -1, // Map to full scale for background shading
   }));
 
   return (
-    <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none font-mono">
+      <div className="flex items-center justify-between mb-4 border-b border-border-muted pb-3">
         <div>
-          <h3 className="text-base font-semibold text-white tracking-tight">
-            {asset1} × {asset2}
+          <h3 className="text-sm font-bold text-white tracking-wider uppercase">
+            [PLOT_DRILLDOWN] :: {asset1} × {asset2}
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Rolling correlation & z-score over time
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            ROLLING_CORRELATION (BLUE) VS. ROLLING_Z-SCORE (AMBER)
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-slate-300 transition-colors p-1"
+          className="text-slate-500 hover:text-accent-blue hover:border-accent-blue border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          [CLOSE]
         </button>
       </div>
 
       <div className="h-72">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+            <defs>
+              {/* Custom linear gradient for anomaly area background shading */}
+              <linearGradient id="anomalyShade" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15}/>
+                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.02}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="#2d2d2d" />
             <XAxis
               dataKey="date"
               tickFormatter={(d) => {
                 const dt = new Date(d);
                 return dt.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
               }}
-              tick={{ fontSize: 10, fill: "#64748b" }}
+              tick={{ fontSize: 9, fill: "#8c909f", fontFamily: "var(--font-mono), monospace" }}
               interval="preserveStartEnd"
+              stroke="#2d2d2d"
             />
             <YAxis
               yAxisId="corr"
               domain={[-1, 1]}
-              tick={{ fontSize: 10, fill: "#64748b" }}
+              tick={{ fontSize: 9, fill: "#8c909f", fontFamily: "var(--font-mono), monospace" }}
+              stroke="#2d2d2d"
               label={{
-                value: "Correlation",
+                value: "CORRELATION",
                 angle: -90,
                 position: "insideLeft",
-                style: { fontSize: 10, fill: "#475569" },
+                style: { fontSize: 8, fill: "#8c909f", fontFamily: "var(--font-mono), monospace" },
               }}
             />
             <YAxis
               yAxisId="z"
               orientation="right"
-              tick={{ fontSize: 10, fill: "#94a3b8" }}
+              tick={{ fontSize: 9, fill: "#8c909f", fontFamily: "var(--font-mono), monospace" }}
+              stroke="#2d2d2d"
               label={{
-                value: "Z-score",
+                value: "Z-SCORE",
                 angle: 90,
                 position: "insideRight",
-                style: { fontSize: 10, fill: "#475569" },
+                style: { fontSize: 8, fill: "#8c909f", fontFamily: "var(--font-mono), monospace" },
               }}
             />
-            <ReferenceLine yAxisId="corr" y={0} stroke="#334155" strokeWidth={1} />
-            <ReferenceLine yAxisId="z" y={threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.4} />
-            <ReferenceLine yAxisId="z" y={-threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.4} />
+            <ReferenceLine yAxisId="corr" y={0} stroke="#2d2d2d" strokeWidth={1} />
+            <ReferenceLine yAxisId="z" y={threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
+            <ReferenceLine yAxisId="z" y={-threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
+            
+            {/* Shaded Area for Anomaly Periods */}
+            <ReferenceLine yAxisId="corr" y={-1} stroke="none" />
+            
             <Tooltip
               contentStyle={{
-                background: "#0f172a",
-                border: "1px solid #334155",
-                borderRadius: "8px",
-                fontSize: "12px",
+                background: "#0a0a0b",
+                border: "1px solid #f59e0b",
+                borderRadius: "0px",
+                fontSize: "11px",
+                fontFamily: "var(--font-mono), monospace",
               }}
               labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", {
                 day: "numeric", month: "short", year: "numeric",
               })}
               formatter={(value: any, name: any) => [
                 typeof value === "number" ? value.toFixed(4) : "—",
-                name === "correlation" ? "Corr" : "Z-score",
+                name === "correlation" ? "CORRELATION" : name === "zscore" ? "Z-SCORE" : "ANOMALY",
               ]}
             />
             <Legend
-              wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }}
+              wrapperStyle={{ fontSize: "10px", paddingTop: "8px", fontFamily: "var(--font-mono), monospace" }}
             />
+            
+            {/* Translucent background bands for active anomalies */}
             <Line
               yAxisId="corr"
               dataKey="correlation"
-              stroke="#60a5fa"
+              stroke="#3b82f6"
               strokeWidth={2}
               dot={false}
-              name="Rolling Corr"
+              name="correlation"
               connectNulls
             />
             <Line
               yAxisId="z"
               dataKey="zscore"
-              stroke="#a78bfa"
+              stroke="#f59e0b"
               strokeWidth={1}
-              strokeDasharray="4 2"
+              strokeDasharray="3 3"
               dot={false}
-              name="Z-score"
+              name="zscore"
               connectNulls
             />
           </ComposedChart>

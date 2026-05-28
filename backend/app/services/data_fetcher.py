@@ -1,12 +1,5 @@
 """
 Data ingestion layer — fetches and normalizes 6 asset classes.
-
-v2 fixes:
-  - FBIL as primary G-Sec source (not broken RBI bulletin URL)
-  - NSE two-step session to avoid 403
-  - FII z-score normalization (not pct_change on a flow)
-  - Align on NIFTY50 trading calendar (not pd.bdate_range)
-  - DataQualityError when >20% missing
 """
 
 import io
@@ -288,12 +281,6 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
     """
     Fetch all assets, align on the NIFTY50 trading calendar,
     and return a clean DataFrame ready for the correlation engine.
-
-    v2 fixes:
-      - Uses NIFTY50 trading dates as master index (not pd.bdate_range)
-      - G-Sec uses first-difference, not pct_change
-      - FII uses z-score of raw flows, not pct_change
-      - Validates <20% missing per column or raises DataQualityError
     """
     if start is None:
         start = settings.DATA_START_DATE

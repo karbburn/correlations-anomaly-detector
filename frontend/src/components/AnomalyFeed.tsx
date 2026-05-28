@@ -38,42 +38,39 @@ export function AnomalyFeed() {
   };
 
   return (
-    <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl p-5 backdrop-blur-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none font-mono">
+      <div className="flex items-center justify-between mb-4 border-b border-border-muted pb-3">
         <div>
-          <h3 className="text-base font-semibold text-white tracking-tight">
-            Anomaly Alerts
+          <h3 className="text-sm font-bold text-white tracking-wider uppercase">
+            [ANOMALY_ALERTS]
           </h3>
-          <p className="text-xs text-slate-500 mt-0.5">
-            {data?.total_count ?? 0} alerts · {window}D window · |z| &gt; {threshold}σ
+          <p className="text-[10px] text-slate-500 mt-0.5">
+            LOGS: {data?.total_count ?? 0} ALERTS · {window}D_WINDOW · |z| &gt; {threshold}σ
           </p>
         </div>
         <button
           onClick={exportCsv}
           disabled={!data?.alerts.length}
-          className="text-xs text-cyan-400 hover:text-cyan-300 transition-colors disabled:text-slate-600 disabled:cursor-not-allowed flex items-center gap-1"
+          className="px-2 py-1 text-[10px] font-semibold text-accent-blue hover:bg-accent-blue hover:text-black border border-accent-blue transition-all disabled:border-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer uppercase rounded-none"
         >
-          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Export CSV
+          EXPORT_CSV
         </button>
       </div>
 
       {isLoading ? (
         <div className="h-48 flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin" />
+          <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
         </div>
       ) : (
         <>
-          <div className="overflow-y-auto max-h-80 rounded-lg border border-slate-800/50">
-            <table className="w-full text-sm">
-              <thead className="sticky top-0 bg-slate-900/95 backdrop-blur-sm">
+          <div className="overflow-y-auto max-h-80 border border-border-muted rounded-none">
+            <table className="w-full text-xs text-left border-collapse">
+              <thead className="sticky top-0 bg-[#0a0a0b] z-10 border-b border-border-muted">
                 <tr>
                   {["Date", "Pair", "Corr", "Z-score", "Regime"].map((h) => (
                     <th
                       key={h}
-                      className="px-3 py-2.5 text-left text-[10px] uppercase tracking-wider text-slate-500 font-medium"
+                      className="px-3 py-2 text-[10px] uppercase font-bold text-slate-400 border-r border-border-muted last:border-r-0"
                     >
                       {h}
                     </th>
@@ -84,33 +81,33 @@ export function AnomalyFeed() {
                 {data?.alerts.map((alert, i) => (
                   <tr
                     key={i}
-                    className="border-t border-slate-800/30 hover:bg-slate-800/20 transition-colors"
+                    className="border-b border-border-muted last:border-b-0 hover:bg-[#1a1a1c] transition-colors"
                   >
-                    <td className="px-3 py-2 text-slate-400 tabular-nums text-xs">
+                    <td className="px-3 py-2 text-slate-400 border-r border-border-muted tabular-nums">
                       {alert.date}
                     </td>
-                    <td className="px-3 py-2 font-mono text-xs text-slate-300">
-                      {alert.asset1} × {alert.asset2}
+                    <td className="px-3 py-2 text-slate-300 font-semibold border-r border-border-muted">
+                      {alert.asset1}×{alert.asset2}
                     </td>
-                    <td className="px-3 py-2 tabular-nums text-xs text-slate-300">
+                    <td className="px-3 py-2 tabular-nums text-slate-300 border-r border-border-muted">
                       {alert.correlation.toFixed(3)}
                     </td>
                     <td
                       className={clsx(
-                        "px-3 py-2 font-semibold tabular-nums text-xs",
-                        alert.zscore < 0 ? "text-red-400" : "text-emerald-400"
+                        "px-3 py-2 font-bold tabular-nums border-r border-border-muted",
+                        "text-accent-amber"
                       )}
                     >
                       {alert.zscore > 0 ? "+" : ""}
                       {alert.zscore.toFixed(2)}σ
                     </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-2 font-bold">
                       <span
                         className={clsx(
-                          "px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider",
+                          "px-2 py-0.5 text-[9px] uppercase tracking-wider",
                           alert.regime === "breakdown"
-                            ? "bg-red-500/15 text-red-300 ring-1 ring-red-500/20"
-                            : "bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-500/20"
+                            ? "bg-red-500/10 text-accent-red border border-accent-red/20"
+                            : "bg-blue-500/10 text-accent-blue border border-accent-blue/20"
                         )}
                       >
                         {alert.regime}
@@ -120,8 +117,8 @@ export function AnomalyFeed() {
                 ))}
                 {(!data?.alerts || data.alerts.length === 0) && (
                   <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-slate-600 text-sm">
-                      No anomalies detected
+                    <td colSpan={5} className="px-3 py-12 text-center text-slate-600 text-xs font-mono">
+                      // NO_ANOMALIES_DETECTED
                     </td>
                   </tr>
                 )}
@@ -131,24 +128,23 @@ export function AnomalyFeed() {
 
           {/* Pagination */}
           {data && data.total_count > PAGE_SIZE && (
-            <div className="flex items-center justify-end gap-2 mt-3">
+            <div className="flex items-center justify-end gap-2 mt-4">
               <button
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                 disabled={offset === 0}
-                className="px-2.5 py-1 rounded-md bg-slate-800/60 text-xs text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-slate-700/50"
+                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-blue disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
               >
-                ← Prev
+                PREV
               </button>
-              <span className="text-slate-500 text-xs tabular-nums">
-                {Math.floor(offset / PAGE_SIZE) + 1} /{" "}
-                {Math.ceil(data.total_count / PAGE_SIZE)}
+              <span className="text-slate-500 text-[10px] tabular-nums font-mono px-1">
+                {Math.floor(offset / PAGE_SIZE) + 1} / {Math.ceil(data.total_count / PAGE_SIZE)}
               </span>
               <button
                 onClick={() => setOffset(offset + PAGE_SIZE)}
                 disabled={!data.has_more}
-                className="px-2.5 py-1 rounded-md bg-slate-800/60 text-xs text-slate-400 hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed border border-slate-700/50"
+                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-blue disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
               >
-                Next →
+                NEXT
               </button>
             </div>
           )}

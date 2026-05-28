@@ -36,7 +36,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
-    const colorScale = (v: number) => interpolateRdYlGn((v + 1) / 2);
+    // Tri-tonal custom color scale: Red (-1) -> Charcoal (0) -> Cyber Blue (1)
+    const colorScale = d3.scaleLinear<string>()
+      .domain([-1, 0, 1])
+      .range(["#ef4444", "#1f2937", "#3b82f6"]);
 
     const g = svg
       .append("g")
@@ -49,9 +52,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("y", i * cellSize + cellSize / 2)
         .attr("dy", "0.35em")
         .attr("text-anchor", "end")
-        .attr("font-size", 11)
-        .attr("font-family", "'JetBrains Mono', monospace")
-        .attr("fill", "#94a3b8")
+        .attr("font-size", 10)
+        .attr("font-family", "var(--font-mono), monospace")
+        .attr("fill", "#8c909f")
         .text(label);
     });
 
@@ -61,9 +64,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("x", i * cellSize + cellSize / 2)
         .attr("y", -14)
         .attr("text-anchor", "middle")
-        .attr("font-size", 11)
-        .attr("font-family", "'JetBrains Mono', monospace")
-        .attr("fill", "#94a3b8")
+        .attr("font-size", 10)
+        .attr("font-family", "var(--font-mono), monospace")
+        .attr("fill", "#8c909f")
         .text(label);
     });
 
@@ -84,15 +87,15 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           cell.on("click", () => onPairSelect(a1, a2));
         }
 
-        // Background rect
+        // Background rect - strictly rectilinear rx=0
         cell
           .append("rect")
-          .attr("width", cellSize - 3)
-          .attr("height", cellSize - 3)
-          .attr("rx", 6)
-          .attr("fill", isDiag ? "#0f172a" : colorScale(val))
-          .attr("opacity", isDiag ? 0.6 : 0.88)
-          .attr("stroke", isDiag ? "#1e293b" : "none")
+          .attr("width", cellSize - 2)
+          .attr("height", cellSize - 2)
+          .attr("rx", 0)
+          .attr("fill", isDiag ? "#10131a" : colorScale(val))
+          .attr("opacity", isDiag ? 0.7 : 0.9)
+          .attr("stroke", isDiag ? "#2d2d2d" : "none")
           .attr("stroke-width", isDiag ? 1 : 0);
 
         // Hover effect for non-diagonal
@@ -104,7 +107,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 1)
-                .attr("stroke", "#e2e8f0")
+                .attr("stroke", "#3b82f6")
                 .attr("stroke-width", 1.5);
             })
             .on("mouseleave", function () {
@@ -112,76 +115,70 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .select("rect")
                 .transition()
                 .duration(150)
-                .attr("opacity", 0.88)
-                .attr("stroke", isAnomaly ? (z > 0 ? "#22c55e" : "#ef4444") : "none")
-                .attr("stroke-width", isAnomaly ? 2.5 : 0);
+                .attr("opacity", 0.9)
+                .attr("stroke", isAnomaly ? "#f59e0b" : "none")
+                .attr("stroke-width", isAnomaly ? 2 : 0);
             });
         }
 
-        // Anomaly pulsing border
+        // Anomaly pulsing border - rect rx=0, Amber warning outline
         if (isAnomaly && !isDiag) {
           cell
             .append("rect")
-            .attr("width", cellSize - 3)
-            .attr("height", cellSize - 3)
-            .attr("rx", 6)
+            .attr("width", cellSize - 2)
+            .attr("height", cellSize - 2)
+            .attr("rx", 0)
             .attr("fill", "none")
-            .attr("stroke", z > 0 ? "#22c55e" : "#ef4444")
-            .attr("stroke-width", 2.5)
+            .attr("stroke", "#f59e0b")
+            .attr("stroke-width", 2)
             .append("animate")
             .attr("attributeName", "opacity")
-            .attr("values", "1;0.15;1")
-            .attr("dur", "2.5s")
+            .attr("values", "1;0.2;1")
+            .attr("dur", "2s")
             .attr("repeatCount", "indefinite");
+
+          // Custom 45-degree Amber corner-clip in the top-right of anomalous cell
+          cell
+            .append("polygon")
+            .attr("points", `${cellSize - 15},0 ${cellSize - 2},0 ${cellSize - 2},13`)
+            .attr("fill", "#f59e0b");
         }
 
-        // Correlation value
+        // Correlation value text
         if (!isDiag) {
-          const textColor =
-            Math.abs(val) > 0.5 ? "rgba(255,255,255,0.95)" : "#1e293b";
-
           cell
             .append("text")
-            .attr("x", (cellSize - 3) / 2)
-            .attr("y", (cellSize - 3) / 2 - 4)
+            .attr("x", (cellSize - 2) / 2)
+            .attr("y", (cellSize - 2) / 2 - 4)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
-            .attr("font-size", 13)
+            .attr("font-size", 12)
             .attr("font-weight", "700")
-            .attr("font-family", "'JetBrains Mono', monospace")
-            .attr("fill", textColor)
+            .attr("font-family", "var(--font-mono), monospace")
+            .attr("fill", "#ffffff")
             .text(val.toFixed(2));
 
           // Z-score label
           cell
             .append("text")
-            .attr("x", (cellSize - 3) / 2)
-            .attr("y", (cellSize - 3) / 2 + 14)
+            .attr("x", (cellSize - 2) / 2)
+            .attr("y", (cellSize - 2) / 2 + 14)
             .attr("text-anchor", "middle")
             .attr("font-size", 9)
-            .attr("font-family", "'JetBrains Mono', monospace")
-            .attr(
-              "fill",
-              isAnomaly
-                ? z > 0
-                  ? "#4ade80"
-                  : "#f87171"
-                : Math.abs(val) > 0.5
-                  ? "rgba(255,255,255,0.5)"
-                  : "#64748b"
-            )
+            .attr("font-family", "var(--font-mono), monospace")
+            .attr("fill", isAnomaly ? "#f59e0b" : "#8c909f")
             .text(`z=${z.toFixed(1)}`);
         } else {
-          // Diagonal — show "1.00" dimly
+          // Diagonal — show "1.00" dimly in monospace
           cell
             .append("text")
-            .attr("x", (cellSize - 3) / 2)
-            .attr("y", (cellSize - 3) / 2)
+            .attr("x", (cellSize - 2) / 2)
+            .attr("y", (cellSize - 2) / 2)
             .attr("dy", "0.35em")
             .attr("text-anchor", "middle")
             .attr("font-size", 11)
-            .attr("font-family", "'JetBrains Mono', monospace")
-            .attr("fill", "#334155")
+            .attr("font-family", "var(--font-mono), monospace")
+            .attr("fill", "#424754")
             .text("1.00");
         }
       });

@@ -1,13 +1,5 @@
 """
 Cache layer — in-memory store + parquet persistence.
-
-v2 strategy: one parquet per window, not per (window, date).
-  - master_returns.parquet
-  - corr_30d.parquet / corr_60d.parquet / corr_252d.parquet
-  - alerts_60d_2.0.parquet (default params)
-  - gsec_last_known.parquet / fii_last_known.parquet (fallback files)
-
-warm_cache() is called at startup (lifespan) and hourly (scheduler).
 """
 
 import asyncio

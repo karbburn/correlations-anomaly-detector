@@ -3,11 +3,11 @@ import { useEffect, useRef, memo } from "react";
 import * as d3 from "d3";
 
 const REGIME_COLORS: Record<string, string> = {
-  strong_positive: "#166534",
-  mild_positive: "#4ade80",
-  neutral: "#475569",
-  mild_negative: "#f87171",
-  strong_negative: "#991b1b",
+  strong_positive: "#3b82f6",
+  mild_positive: "rgba(59, 130, 246, 0.5)",
+  neutral: "#1f2937",
+  mild_negative: "rgba(239, 68, 68, 0.5)",
+  strong_negative: "#ef4444",
   anomaly: "#f59e0b",
 };
 
@@ -68,8 +68,8 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("dy", "0.35em")
         .attr("text-anchor", "end")
         .attr("font-size", 9)
-        .attr("font-family", "'JetBrains Mono', monospace")
-        .attr("fill", "#94a3b8")
+        .attr("font-family", "var(--font-mono), monospace")
+        .attr("fill", "#8c909f")
         .text(PAIR_LABELS[pair] ?? pair.replace("__", "×"));
     });
 
@@ -82,12 +82,13 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("y", pairs.length * cellH + 16)
         .attr("text-anchor", "middle")
         .attr("font-size", 8)
+        .attr("font-family", "var(--font-mono), monospace")
         .attr("fill", "#64748b")
         .attr("transform", `rotate(-45, ${i * cellW + cellW / 2}, ${pairs.length * cellH + 16})`)
         .text(new Date(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
     });
 
-    // Heat cells
+    // Heat cells (strictly rectilinear rx=0)
     pairs.forEach((pair, pi) => {
       const pairRegimes = regimes[pair];
       if (!pairRegimes) return;
@@ -99,8 +100,9 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
           .attr("y", pi * cellH)
           .attr("width", cellW)
           .attr("height", cellH - 1)
-          .attr("fill", REGIME_COLORS[regime] ?? "#475569")
-          .attr("opacity", 0.85);
+          .attr("rx", 0)
+          .attr("fill", REGIME_COLORS[regime] ?? "#1f2937")
+          .attr("opacity", 0.9);
       });
     });
 
@@ -119,21 +121,22 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
       .attr("transform", `translate(${margin.left}, 8)`);
 
     legendData.forEach((d, i) => {
-      const x = i * 70;
+      const x = i * 75;
       legend
         .append("rect")
         .attr("x", x)
         .attr("y", 0)
         .attr("width", 10)
         .attr("height", 10)
-        .attr("rx", 2)
+        .attr("rx", 0)
         .attr("fill", d.color);
       legend
         .append("text")
         .attr("x", x + 14)
         .attr("y", 9)
         .attr("font-size", 8)
-        .attr("fill", "#94a3b8")
+        .attr("font-family", "var(--font-mono), monospace")
+        .attr("fill", "#8c909f")
         .text(d.label);
     });
   }, [pairs, dates, regimes]);

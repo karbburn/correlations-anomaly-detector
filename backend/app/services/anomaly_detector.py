@@ -1,10 +1,5 @@
 """
 Anomaly detector — z-score based detection with clipping and regime labels.
-
-v2 fixes:
-  - Z-score clipped to [-10, +10] to prevent display explosion when std ≈ 0
-  - classify_regime() uses both correlation direction AND z-score
-  - Long-format output with proper date stringification
 """
 
 import numpy as np

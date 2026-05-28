@@ -1,9 +1,5 @@
 """
 Correlation engine — vectorized pairwise rolling Pearson correlations.
-
-v2: The looping compute_rolling_correlation_matrix function is DELETED.
-Only the vectorized pandas .rolling().corr() approach exists.
-Matrix snapshots are reconstructed from the last row of pair timeseries.
 """
 
 import numpy as np
@@ -25,9 +21,6 @@ def compute_all_pair_correlations(
       - columns: "ASSET1__ASSET2" for all N*(N-1)/2 pairs
       - values: rolling correlation coefficient [-1, 1]
 
-    This is the ONLY function that computes correlations. The matrix
-    snapshot endpoint slices the last row. The timeseries endpoint
-    slices one column. No date-looping anywhere.
     """
     pairs = {}
     assets = [c for c in ASSETS if c in returns.columns]

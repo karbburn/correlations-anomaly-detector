@@ -1,11 +1,6 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Inter } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
 
 const jetbrains = JetBrains_Mono({
   variable: "--font-mono",
@@ -26,11 +21,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrains.variable} h-full antialiased dark`}
+      className={`${jetbrains.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full bg-[#060a14] text-slate-200 font-[family-name:var(--font-inter)]">
+      <body className="min-h-full bg-[#0a0a0b] text-[#d1d5db] font-[family-name:var(--font-mono)]">
         {children}
       </body>
     </html>
   );
 }
+

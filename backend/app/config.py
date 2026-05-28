@@ -1,9 +1,5 @@
 """
 Application settings loaded from environment / .env file.
-
-CORS fix (v2): ALLOWED_ORIGINS is stored as a comma-separated string
-in the .env file and parsed via a property — avoids the silent
-List[str] parsing failure that plagued v1.
 """
 
 from functools import lru_cache

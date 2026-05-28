@@ -11,19 +11,19 @@ const ASSETS = [
 
 export function AssetLegend() {
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-2 font-mono">
       {ASSETS.map((a) => (
         <div
           key={a.key}
-          className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/40 rounded-lg border border-slate-700/30"
+          className="flex items-center gap-2 px-2.5 py-1 bg-[#0a0a0b] border border-border-muted rounded-none"
         >
           <span
-            className="w-2.5 h-2.5 rounded-full shrink-0"
+            className="w-2 h-2 shrink-0 rounded-none"
             style={{ backgroundColor: a.color }}
           />
-          <span className="text-xs text-slate-300 font-medium">{a.label}</span>
-          <span className="text-[10px] text-slate-600 hidden sm:inline">
-            {a.desc}
+          <span className="text-[10px] text-slate-300 font-bold uppercase">{a.label}</span>
+          <span className="text-[9px] text-slate-600 hidden sm:inline uppercase">
+            // {a.desc}
           </span>
         </div>
       ))}

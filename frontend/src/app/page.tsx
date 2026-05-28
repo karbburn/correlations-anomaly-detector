@@ -47,15 +47,15 @@ function Dashboard() {
       <BackendStatus onReady={onReady} />
 
       {ready && (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-[#0a0a0b] text-[#d1d5db]">
           {/* Header */}
-          <header className="border-b border-slate-800/50 bg-[#060a14]/80 backdrop-blur-md sticky top-0 z-40">
+          <header className="border-b border-border-muted bg-[#0a0a0b] sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight text-white">
                     Cross-Asset Correlations
-                    <span className="ml-2 text-sm font-normal text-cyan-400/80">
+                    <span className="ml-2 text-sm font-normal text-accent-blue">
                       Anomaly Detector
                     </span>
                   </h1>
@@ -71,20 +71,20 @@ function Dashboard() {
           </header>
 
           {/* Main Content */}
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
             {/* Asset Legend */}
             <AssetLegend />
 
             {/* Top Grid: Heatmap + Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Correlation Heatmap */}
-              <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-5 backdrop-blur-sm">
-                <h2 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">
-                  Correlation Matrix
+              <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none">
+                <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
+                  [CORRELATION_MATRIX]
                 </h2>
                 {matrixLoading ? (
                   <div className="h-96 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
                   </div>
                 ) : matrixData ? (
                   <CorrelationMatrix
@@ -95,10 +95,10 @@ function Dashboard() {
                     onPairSelect={(a1, a2) => selectPair(a1, a2)}
                   />
                 ) : (
-                  <p className="text-slate-600 text-sm">No data available</p>
+                  <p className="text-slate-600 text-xs font-mono">No matrix data available</p>
                 )}
-                <p className="text-[10px] text-slate-600 mt-3 text-center">
-                  Click any cell to drill down into the pair history
+                <p className="text-[9px] text-slate-600 mt-4 text-center font-mono">
+                  &gt;&gt; SELECT CELL TO PLOT HISTORICAL DRILLDOWN &lt;&lt;
                 </p>
               </div>
 
@@ -110,8 +110,8 @@ function Dashboard() {
             {selectedPair && (
               <div>
                 {pairLoading ? (
-                  <div className="h-48 flex items-center justify-center bg-slate-900/60 rounded-xl border border-slate-800/50">
-                    <div className="w-6 h-6 border-2 border-cyan-500/30 border-t-cyan-400 rounded-full animate-spin" />
+                  <div className="h-48 flex items-center justify-center bg-[#0a0a0b] border border-border-muted rounded-none">
+                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
                   </div>
                 ) : pairData ? (
                   <PairDrilldown
@@ -127,9 +127,9 @@ function Dashboard() {
 
             {/* Regime Timeline */}
             {regimeData && (
-              <div className="bg-slate-900/60 border border-slate-800/50 rounded-xl p-5 backdrop-blur-sm">
-                <h2 className="text-sm font-medium text-slate-400 mb-4 uppercase tracking-wider">
-                  Regime Timeline
+              <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none">
+                <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
+                  [REGIME_TIMELINE]
                 </h2>
                 <RegimeTimeline
                   pairs={regimeData.pairs}
@@ -141,13 +141,13 @@ function Dashboard() {
           </main>
 
           {/* Footer */}
-          <footer className="border-t border-slate-800/30 mt-12">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-              <p className="text-xs text-slate-700">
+          <footer className="border-t border-border-muted mt-12 bg-[#0a0a0b]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-slate-600">
+              <p>
                 Cross-Asset Correlations Anomaly Detector v2.0
               </p>
-              <p className="text-xs text-slate-700">
-                Data: yfinance · FBIL · NSE
+              <p>
+                Data: yfinance &middot; FBIL &middot; NSE
               </p>
             </div>
           </footer>
