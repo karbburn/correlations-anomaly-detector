@@ -10,6 +10,9 @@ from functools import lru_cache
 from typing import List
 from pydantic_settings import BaseSettings
 
+# Single source of truth for asset list
+ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"]
+
 
 class Settings(BaseSettings):
     # Server

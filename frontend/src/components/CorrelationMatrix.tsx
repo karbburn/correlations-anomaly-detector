@@ -2,8 +2,8 @@
 import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
+import { ASSETS } from "@/lib/types";
 
-const ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"];
 const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
 
 interface Props {

@@ -9,8 +9,7 @@ Matrix snapshots are reconstructed from the last row of pair timeseries.
 import numpy as np
 import pandas as pd
 from itertools import combinations
-
-ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"]
+from app.config import ASSETS
 
 
 def compute_all_pair_correlations(
