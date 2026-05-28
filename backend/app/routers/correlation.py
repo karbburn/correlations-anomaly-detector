@@ -12,6 +12,7 @@ from fastapi import APIRouter, Query, Response, HTTPException
 from app.services.cache import get_pair_corrs, get_returns, is_cache_warm
 from app.services.correlation_engine import pair_corr_to_matrix, ASSETS
 from app.services.anomaly_detector import compute_zscore_series
+from app.models.schemas import CorrelationMatrix, PairTimeseries
 from app.config import get_settings
 
 router = APIRouter()
@@ -20,7 +21,7 @@ settings = get_settings()
 CACHE_HEADER = "public, max-age=300, stale-while-revalidate=60"
 
 
-@router.get("/matrix")
+@router.get("/matrix", response_model=CorrelationMatrix)
 async def correlation_matrix(
     response: Response,
     window: int = Query(default=60, description="Rolling window: 30, 60, or 252"),

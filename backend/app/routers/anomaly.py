@@ -10,6 +10,7 @@ from fastapi import APIRouter, Query, Response, HTTPException
 from app.services.cache import get_pair_corrs, is_cache_warm
 from app.services.anomaly_detector import detect_anomalies, classify_regime, compute_zscore_series
 from app.services.correlation_engine import ASSETS
+from app.models.schemas import AlertsResponse
 from app.config import get_settings
 
 router = APIRouter()
@@ -18,7 +19,7 @@ settings = get_settings()
 CACHE_HEADER = "public, max-age=300, stale-while-revalidate=60"
 
 
-@router.get("/alerts")
+@router.get("/alerts", response_model=AlertsResponse)
 async def anomaly_alerts(
     response: Response,
     window: int = Query(default=60),
