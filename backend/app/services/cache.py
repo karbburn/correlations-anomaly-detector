@@ -38,7 +38,7 @@ async def warm_cache() -> None:
     Run at startup and on the hourly scheduler.
     Writes parquet files for persistence; updates in-memory store for speed.
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     # Run CPU-bound work in thread pool so it doesn't block the event loop
     await loop.run_in_executor(None, _warm_sync)
 
