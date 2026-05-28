@@ -14,9 +14,17 @@ export function AnomalyFeed() {
 
   const exportCsv = () => {
     if (!data?.alerts.length) return;
+    const escapeCsv = (val: string | number) => {
+      const str = String(val);
+      return str.includes(",") || str.includes('"') || str.includes("\n")
+        ? `"${str.replace(/"/g, '""')}"`
+        : str;
+    };
     const headers = ["date", "asset1", "asset2", "correlation", "zscore", "regime"];
     const rows = data.alerts.map((a) =>
-      [a.date, a.asset1, a.asset2, a.correlation, a.zscore, a.regime].join(",")
+      [a.date, a.asset1, a.asset2, a.correlation, a.zscore, a.regime]
+        .map(escapeCsv)
+        .join(",")
     );
     const blob = new Blob([headers.join(",") + "\n" + rows.join("\n")], {
       type: "text/csv",
