@@ -41,6 +41,9 @@ htmlcov/
 # Skills
 Skills/
 
+# Design artifacts
+design-system/
+
 # Review artifacts
 REVIEW.md
 REVIEW-FIX.md
