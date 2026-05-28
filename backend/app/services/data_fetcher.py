@@ -115,7 +115,7 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
         return prices
 
     except Exception as e:
-        logger.error(f"yfinance fetch failed: {e}")
+        logger.warning(f"yfinance fetch failed: {e}")
         raise DataUnavailableError(f"yfinance download failed: {e}") from e
 
 
