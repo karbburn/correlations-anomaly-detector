@@ -53,7 +53,10 @@ async def correlation_matrix(
         as_of = str(row.name.date()) if hasattr(row.name, "date") else str(row.name)
 
     # Reconstruct matrices
-    assets = [a for a in ASSETS if a in get_returns().columns]
+    returns = get_returns()
+    if returns is None:
+        raise HTTPException(503, "Returns data not available")
+    assets = [a for a in ASSETS if a in returns.columns]
     corr_matrix = pair_corr_to_matrix(row, assets)
 
     # Compute z-score matrix from pair-level z-scores
