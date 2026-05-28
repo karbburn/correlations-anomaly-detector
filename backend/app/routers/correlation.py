@@ -110,6 +110,11 @@ async def correlation_timeseries(
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
+    # Validate asset names against allowed list
+    valid_assets = set(ASSETS)
+    if asset1 not in valid_assets or asset2 not in valid_assets:
+        raise HTTPException(400, f"Invalid asset. Valid: {sorted(valid_assets)}")
+
     pair_corrs = get_pair_corrs(window)
     if pair_corrs is None:
         raise HTTPException(503, f"Correlation data for {window}d not available")
