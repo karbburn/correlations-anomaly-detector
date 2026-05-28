@@ -12,6 +12,11 @@ COPY . .
 # Create cache directory
 RUN mkdir -p data/cache
 
+# Create non-root user for security
+RUN adduser --disabled-password --no-create-home appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
 EXPOSE 8000
 
 # Health check so Render knows when the container is ready
