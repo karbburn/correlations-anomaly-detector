@@ -78,7 +78,7 @@ def _warm_sync() -> None:
         _store["_warm"] = True
     logger.info(f"  Returns: {returns.shape[0]} rows × {returns.shape[1]} assets")
     logger.info(f"  Alerts: {len(alerts)} rows")
-    logger.info("Cache warm complete ✅")
+    logger.info("Cache warm complete")
 
 
 # ---------------------------------------------------------------------------

@@ -34,7 +34,7 @@ from app.services.anomaly_detector import detect_anomalies, compute_zscore_serie
 @click.option("--pair",      nargs=2,              help="Drilldown: two asset names")
 def detect(window, threshold, start, output, matrix, pair):
     """Cross-Asset Correlations Anomaly Detector CLI."""
-    click.echo(f"📥 Fetching data from {start}...")
+    click.echo(f"Fetching data from {start}...")
     returns = build_master_dataframe(start=start)
 
     if matrix:
@@ -54,7 +54,7 @@ def detect(window, threshold, start, output, matrix, pair):
         if col not in corrs.columns:
             col = f"{a2}__{a1}"
             if col not in corrs.columns:
-                click.echo(f"❌ Pair {a1}/{a2} not found. Valid assets: {ASSETS}")
+                click.echo(f"Pair {a1}/{a2} not found. Valid assets: {ASSETS}")
                 return
 
         series = corrs[col]
@@ -65,18 +65,18 @@ def detect(window, threshold, start, output, matrix, pair):
         return
 
     # Default: full anomaly detection
-    click.echo(f"⚙️  Computing rolling correlations (window={window}d)...")
+    click.echo(f"Computing rolling correlations (window={window}d)...")
     corrs = compute_all_pair_correlations(returns, window=window)
 
-    click.echo(f"🔍 Detecting anomalies (threshold=±{threshold}σ)...")
+    click.echo(f"Detecting anomalies (threshold=±{threshold}σ)...")
     alerts = detect_anomalies(corrs, threshold=threshold)
 
     if alerts.empty:
-        click.echo("✅ No anomalies detected.")
+        click.echo("No anomalies detected.")
         return
 
     alerts.to_csv(output, index=False)
-    click.echo(f"🚨 {len(alerts)} alerts written to {output}")
+    click.echo(f"{len(alerts)} alerts written to {output}")
 
 
 if __name__ == "__main__":

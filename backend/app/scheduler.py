@@ -23,15 +23,15 @@ def start_scheduler() -> None:
         max_instances=1,  # don't stack if previous run is still going
     )
     scheduler.start()
-    logger.info("📅 Background scheduler started (1h refresh)")
+    logger.info("Background scheduler started (1h refresh)")
 
 
 async def _refresh() -> None:
     """Hourly refresh job."""
     try:
-        logger.info("🔄 Scheduled cache refresh starting...")
+        logger.info("Scheduled cache refresh starting...")
         await warm_cache()
-        logger.info("✅ Scheduled cache refresh complete")
+        logger.info("Scheduled cache refresh complete")
     except Exception as e:
-        logger.error(f"❌ Scheduled refresh failed: {e}")
+        logger.error(f"Scheduled refresh failed: {e}")
         # Don't re-raise — let the scheduler keep running

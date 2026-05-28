@@ -39,12 +39,12 @@ async def lifespan(app: FastAPI):
     This means the first real request from the frontend is fast (~100ms)
     rather than triggering a 30–60 second cold computation.
     """
-    logger.info("🚀 Warming cache on startup...")
+        logger.info("Warming cache on startup...")
     try:
         await warm_cache()
-        logger.info("✅ Cache warm. Server ready.")
+        logger.info("Cache warm. Server ready.")
     except Exception as e:
-        logger.error(f"⚠️ Cache warm failed: {e}. Server starting anyway.")
+        logger.error(f"Cache warm failed: {e}. Server starting anyway.")
         # Don't crash on startup — endpoints will return 503 with clear message
 
     start_scheduler()  # background refresh every hour

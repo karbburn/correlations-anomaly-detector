@@ -37,3 +37,10 @@ htmlcov/
 
 # Docker
 *.log
+
+# Skills
+Skills/
+
+# Review artifacts
+REVIEW.md
+REVIEW-FIX.md
