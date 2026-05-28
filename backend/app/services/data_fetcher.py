@@ -20,6 +20,7 @@ import requests
 import yfinance as yf
 
 from app.config import get_settings
+from app.services.cache import set_staleness
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -170,6 +171,7 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
 
     if cache_path.exists():
         logger.warning("Serving stale G-Sec cache (FBIL was down)")
+        set_staleness("gsec_stale", True)
         df = pd.read_parquet(cache_path)
         series = df.squeeze()
         series.name = "GSEC10Y"
@@ -177,6 +179,7 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
 
     # Last resort: generate synthetic data so the app doesn't crash
     logger.error("No G-Sec cache available — generating synthetic data")
+    set_staleness("gsec_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
     rng = np.random.default_rng(42)
@@ -262,12 +265,14 @@ def _fallback_fii(start: str) -> pd.Series:
 
     if cache_path.exists():
         logger.warning("Serving stale FII cache")
+        set_staleness("fii_stale", True)
         df = pd.read_parquet(cache_path)
         series = df.squeeze()
         series.name = "FII_FLOW"
         return series[series.index >= start]
 
     logger.error("No FII cache — generating synthetic data")
+    set_staleness("fii_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
     rng = np.random.default_rng(100)
