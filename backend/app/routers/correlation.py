@@ -42,12 +42,11 @@ async def correlation_matrix(
 
     # Pick the date row
     if date_str:
-        target = date_str
-        matching = pair_corrs.loc[pair_corrs.index.strftime("%Y-%m-%d") == target]
-        if matching.empty:
-            raise HTTPException(404, f"No data for date {target}")
-        row = matching.iloc[-1]
-        as_of = target
+        target = pd.Timestamp(date_str)
+        if target not in pair_corrs.index:
+            raise HTTPException(404, f"No data for date {date_str}")
+        row = pair_corrs.loc[target]
+        as_of = date_str
     else:
         row = pair_corrs.dropna(how="all").iloc[-1]
         as_of = str(row.name.date()) if hasattr(row.name, "date") else str(row.name)
