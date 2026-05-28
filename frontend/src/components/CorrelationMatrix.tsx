@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
 
@@ -14,7 +14,7 @@ interface Props {
   onPairSelect: (a1: string, a2: string) => void;
 }
 
-export function CorrelationMatrix({
+export const CorrelationMatrix = memo(function CorrelationMatrix({
   matrix,
   zscoreMatrix,
   anomalyFlags,
@@ -193,4 +193,4 @@ export function CorrelationMatrix({
   }, [render]);
 
   return <svg ref={svgRef} className="w-full h-auto max-w-2xl mx-auto" />;
-}
+})

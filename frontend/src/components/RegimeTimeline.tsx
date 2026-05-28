@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 import * as d3 from "d3";
 
 const REGIME_COLORS: Record<string, string> = {
@@ -35,7 +35,7 @@ interface Props {
   regimes: Record<string, string[]>;
 }
 
-export function RegimeTimeline({ pairs, dates, regimes }: Props) {
+export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
@@ -143,4 +143,4 @@ export function RegimeTimeline({ pairs, dates, regimes }: Props) {
       <svg ref={svgRef} className="w-full h-auto min-w-[600px]" />
     </div>
   );
-}
+})
