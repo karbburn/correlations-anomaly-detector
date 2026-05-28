@@ -1,6 +1,3 @@
-/* ── Shared TypeScript types mirroring backend Pydantic schemas ── */
-
-/** Single source of truth for asset names (must match backend config.py ASSETS) */
 export const ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"] as const;
 
 export interface CorrelationMatrixResponse {

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { BackendStatus } from "@/components/BackendStatus";
 import { WindowSelector } from "@/components/WindowSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { CorrelationMatrix } from "@/components/CorrelationMatrix";
 import { PairDrilldown } from "@/components/PairDrilldown";
 import { AnomalyFeed } from "@/components/AnomalyFeed";
@@ -47,15 +48,15 @@ function Dashboard() {
       <BackendStatus onReady={onReady} />
 
       {ready && (
-        <div className="min-h-screen bg-[#0a0a0b] text-[#d1d5db]">
+        <div className="min-h-screen bg-background text-foreground">
           {/* Header */}
-          <header className="border-b border-border-muted bg-[#0a0a0b] sticky top-0 z-40">
+          <header className="border-b border-border-muted bg-background sticky top-0 z-40">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight text-white">
                     Cross-Asset Correlations
-                    <span className="ml-2 text-sm font-normal text-accent-blue">
+                    <span className="ml-2 text-sm font-normal text-accent-primary">
                       Anomaly Detector
                     </span>
                   </h1>
@@ -65,7 +66,10 @@ function Dashboard() {
                       : "Loading..."}
                   </p>
                 </div>
-                <WindowSelector />
+                <div className="flex flex-wrap items-center gap-4">
+                  <WindowSelector />
+                  <ThemeToggle />
+                </div>
               </div>
             </div>
           </header>
@@ -78,13 +82,13 @@ function Dashboard() {
             {/* Top Grid: Heatmap + Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Correlation Heatmap */}
-              <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none">
+              <div className="bg-background border border-border-muted p-5 rounded-none">
                 <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
                   [CORRELATION_MATRIX]
                 </h2>
                 {matrixLoading ? (
                   <div className="h-96 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
+                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
                   </div>
                 ) : matrixData ? (
                   <CorrelationMatrix
@@ -110,8 +114,8 @@ function Dashboard() {
             {selectedPair && (
               <div>
                 {pairLoading ? (
-                  <div className="h-48 flex items-center justify-center bg-[#0a0a0b] border border-border-muted rounded-none">
-                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
+                  <div className="h-48 flex items-center justify-center bg-background border border-border-muted rounded-none">
+                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
                   </div>
                 ) : pairData ? (
                   <PairDrilldown
@@ -127,7 +131,7 @@ function Dashboard() {
 
             {/* Regime Timeline */}
             {regimeData && (
-              <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none">
+              <div className="bg-background border border-border-muted p-5 rounded-none">
                 <h2 className="text-xs font-semibold text-slate-400 mb-4 uppercase tracking-wider font-mono">
                   [REGIME_TIMELINE]
                 </h2>
@@ -141,10 +145,13 @@ function Dashboard() {
           </main>
 
           {/* Footer */}
-          <footer className="border-t border-border-muted mt-12 bg-[#0a0a0b]">
+          <footer className="border-t border-border-muted mt-12 bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-slate-600">
               <p>
                 Cross-Asset Correlations Anomaly Detector v2.0
+              </p>
+              <p className="text-accent-primary font-semibold tracking-wider">
+                Sourabh
               </p>
               <p>
                 Data: yfinance &middot; FBIL &middot; NSE

@@ -23,7 +23,7 @@ export default function RootLayout({
       lang="en"
       className={`${jetbrains.variable} h-full antialiased dark`}
     >
-      <body className="min-h-full bg-[#0a0a0b] text-[#d1d5db] font-[family-name:var(--font-mono)]">
+      <body className="min-h-full bg-background text-foreground font-[family-name:var(--font-mono)]">
         {children}
       </body>
     </html>

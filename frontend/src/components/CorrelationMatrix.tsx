@@ -4,6 +4,8 @@ import * as d3 from "d3";
 import { interpolateRdYlGn } from "d3-scale-chromatic";
 import { ASSETS } from "@/lib/types";
 
+import { useAppStore } from "@/lib/store";
+
 const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
 
 interface Props {
@@ -22,6 +24,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
   onPairSelect,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const theme = useAppStore((s) => s.theme);
 
   const render = useCallback(() => {
     if (!svgRef.current || !matrix.length) return;
@@ -36,16 +39,21 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
 
-    // Tri-tonal custom color scale: Red (-1) -> Charcoal (0) -> Cyber Blue (1)
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
-      .range(["#ef4444", "#1f2937", "#3b82f6"]);
+      .range(
+        theme === "light"
+          ? ["#dc2626", "#e2e8f0", "#1e40af"]
+          : ["#ef4444", "#1f2937", "#3b82f6"]
+      );
+
+    const amberColor = theme === "light" ? "#b45309" : "#f59e0b";
+    const labelColor = theme === "light" ? "#475569" : "#8c909f";
 
     const g = svg
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Row labels
     LABELS.forEach((label, i) => {
       g.append("text")
         .attr("x", -12)
@@ -54,11 +62,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("text-anchor", "end")
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", "#8c909f")
+        .attr("fill", labelColor)
         .text(label);
     });
 
-    // Column labels (rotated)
     LABELS.forEach((label, i) => {
       g.append("text")
         .attr("x", i * cellSize + cellSize / 2)
@@ -66,11 +73,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("text-anchor", "middle")
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", "#8c909f")
+        .attr("fill", labelColor)
         .text(label);
     });
 
-    // Cells
     ASSETS.forEach((a1, i) => {
       ASSETS.forEach((a2, j) => {
         const val = matrix[i][j];
@@ -87,18 +93,16 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           cell.on("click", () => onPairSelect(a1, a2));
         }
 
-        // Background rect - strictly rectilinear rx=0
         cell
           .append("rect")
           .attr("width", cellSize - 2)
           .attr("height", cellSize - 2)
           .attr("rx", 0)
-          .attr("fill", isDiag ? "#10131a" : colorScale(val))
+          .attr("fill", isDiag ? (theme === "light" ? "#f1f5f9" : "#10131a") : colorScale(val))
           .attr("opacity", isDiag ? 0.7 : 0.9)
-          .attr("stroke", isDiag ? "#2d2d2d" : "none")
+          .attr("stroke", isDiag ? (theme === "light" ? "#cbd5e1" : "#2d2d2d") : "none")
           .attr("stroke-width", isDiag ? 1 : 0);
 
-        // Hover effect for non-diagonal
         if (!isDiag) {
           cell
             .on("mouseenter", function () {
@@ -107,7 +111,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 1)
-                .attr("stroke", "#3b82f6")
+                .attr("stroke", theme === "light" ? "#1e40af" : "#3b82f6")
                 .attr("stroke-width", 1.5);
             })
             .on("mouseleave", function () {
@@ -116,12 +120,11 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 0.9)
-                .attr("stroke", isAnomaly ? "#f59e0b" : "none")
+                .attr("stroke", isAnomaly ? amberColor : "none")
                 .attr("stroke-width", isAnomaly ? 2 : 0);
             });
         }
 
-        // Anomaly pulsing border - rect rx=0, Amber warning outline
         if (isAnomaly && !isDiag) {
           cell
             .append("rect")
@@ -129,7 +132,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("height", cellSize - 2)
             .attr("rx", 0)
             .attr("fill", "none")
-            .attr("stroke", "#f59e0b")
+            .attr("stroke", amberColor)
             .attr("stroke-width", 2)
             .append("animate")
             .attr("attributeName", "opacity")
@@ -137,15 +140,15 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("dur", "2s")
             .attr("repeatCount", "indefinite");
 
-          // Custom 45-degree Amber corner-clip in the top-right of anomalous cell
           cell
             .append("polygon")
             .attr("points", `${cellSize - 15},0 ${cellSize - 2},0 ${cellSize - 2},13`)
-            .attr("fill", "#f59e0b");
+            .attr("fill", amberColor);
         }
 
-        // Correlation value text
         if (!isDiag) {
+          const textColor = Math.abs(val) > 0.4 ? "#ffffff" : (theme === "light" ? "#0f172a" : "#ffffff");
+
           cell
             .append("text")
             .attr("x", (cellSize - 2) / 2)
@@ -155,10 +158,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("font-size", 12)
             .attr("font-weight", "700")
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", "#ffffff")
+            .attr("fill", textColor)
             .text(val.toFixed(2));
 
-          // Z-score label
           cell
             .append("text")
             .attr("x", (cellSize - 2) / 2)
@@ -166,10 +168,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 9)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", isAnomaly ? "#f59e0b" : "#8c909f")
+            .attr("fill", isAnomaly ? amberColor : (theme === "light" ? "#475569" : "#8c909f"))
             .text(`z=${z.toFixed(1)}`);
         } else {
-          // Diagonal — show "1.00" dimly in monospace
           cell
             .append("text")
             .attr("x", (cellSize - 2) / 2)
@@ -178,12 +179,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 11)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", "#424754")
+            .attr("fill", theme === "light" ? "#94a3b8" : "#424754")
             .text("1.00");
         }
       });
     });
-  }, [matrix, zscoreMatrix, anomalyFlags, threshold, onPairSelect]);
+  }, [matrix, zscoreMatrix, anomalyFlags, threshold, onPairSelect, theme]);
 
   useEffect(() => {
     render();

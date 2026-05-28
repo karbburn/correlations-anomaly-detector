@@ -38,7 +38,7 @@ export function AnomalyFeed() {
   };
 
   return (
-    <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none font-mono">
+    <div className="bg-background border border-border-muted p-5 rounded-none font-mono">
       <div className="flex items-center justify-between mb-4 border-b border-border-muted pb-3">
         <div>
           <h3 className="text-sm font-bold text-white tracking-wider uppercase">
@@ -51,7 +51,7 @@ export function AnomalyFeed() {
         <button
           onClick={exportCsv}
           disabled={!data?.alerts.length}
-          className="px-2 py-1 text-[10px] font-semibold text-accent-blue hover:bg-accent-blue hover:text-black border border-accent-blue transition-all disabled:border-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer uppercase rounded-none"
+          className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-white border border-accent-primary transition-all disabled:border-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer uppercase rounded-none"
         >
           EXPORT_CSV
         </button>
@@ -59,13 +59,13 @@ export function AnomalyFeed() {
 
       {isLoading ? (
         <div className="h-48 flex items-center justify-center">
-          <div className="w-6 h-6 border-2 border-border-muted border-t-accent-blue rounded-none animate-spin" />
+          <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
         </div>
       ) : (
         <>
           <div className="overflow-y-auto max-h-80 border border-border-muted rounded-none">
             <table className="w-full text-xs text-left border-collapse">
-              <thead className="sticky top-0 bg-[#0a0a0b] z-10 border-b border-border-muted">
+              <thead className="sticky top-0 bg-background z-10 border-b border-border-muted">
                 <tr>
                   {["Date", "Pair", "Corr", "Z-score", "Regime"].map((h) => (
                     <th
@@ -107,7 +107,7 @@ export function AnomalyFeed() {
                           "px-2 py-0.5 text-[9px] uppercase tracking-wider",
                           alert.regime === "breakdown"
                             ? "bg-red-500/10 text-accent-red border border-accent-red/20"
-                            : "bg-blue-500/10 text-accent-blue border border-accent-blue/20"
+                            : "bg-accent-primary/10 text-accent-primary border border-accent-primary/20"
                         )}
                       >
                         {alert.regime}
@@ -132,7 +132,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                 disabled={offset === 0}
-                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-blue disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
+                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-primary disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
               >
                 PREV
               </button>
@@ -142,7 +142,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(offset + PAGE_SIZE)}
                 disabled={!data.has_more}
-                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-blue disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
+                className="px-3 py-1 border border-border-muted text-[10px] text-slate-400 hover:text-white hover:border-accent-primary disabled:opacity-20 disabled:border-border-muted disabled:text-slate-600 disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
               >
                 NEXT
               </button>

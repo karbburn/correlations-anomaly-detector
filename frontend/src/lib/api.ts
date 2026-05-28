@@ -1,5 +1,3 @@
-/* ── Typed API client for the FastAPI backend ── */
-
 import type {
   CorrelationMatrixResponse,
   PairTimeseriesResponse,

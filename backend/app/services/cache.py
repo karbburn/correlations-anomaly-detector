@@ -27,27 +27,18 @@ _store_lock = threading.Lock()
 
 
 async def warm_cache() -> None:
-    """
-    Pre-fetch all data and pre-compute all correlation windows.
-    Run at startup and on the hourly scheduler.
-    Writes parquet files for persistence; updates in-memory store for speed.
-    """
     loop = asyncio.get_running_loop()
-    # Run CPU-bound work in thread pool so it doesn't block the event loop
     await loop.run_in_executor(None, _warm_sync)
 
 
 def _warm_sync() -> None:
-    """Synchronous cache warming — runs in thread pool."""
     cache_dir = Path(settings.CACHE_DIR)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. Fetch master returns
     logger.info("Fetching master returns...")
     returns = build_master_dataframe(start=settings.DATA_START_DATE)
     returns.to_parquet(cache_dir / "master_returns.parquet")
 
-    # 2. Compute rolling correlations for all 3 windows
     corr_data = {}
     for window in [30, 60, 252]:
         logger.info(f"Computing window={window}d correlations...")
@@ -56,13 +47,11 @@ def _warm_sync() -> None:
         corr_data[f"corr_{window}d"] = pair_corrs
         logger.info(f"  corr_{window}d: {pair_corrs.shape}")
 
-    # 3. Pre-compute alerts for default params
     logger.info("Computing default anomaly alerts...")
     default_corrs = corr_data["corr_60d"]
     alerts = detect_anomalies(default_corrs, threshold=settings.DEFAULT_THRESHOLD)
     alerts.to_parquet(cache_dir / f"alerts_60d_{settings.DEFAULT_THRESHOLD}.parquet")
 
-    # 4. Atomically update the in-memory store
     with _store_lock:
         _store["returns"] = returns
         _store.update(corr_data)
@@ -78,36 +67,30 @@ def _warm_sync() -> None:
 # ---------------------------------------------------------------------------
 
 def get_pair_corrs(window: int) -> Optional[pd.DataFrame]:
-    """Retrieve cached correlation DataFrame. Returns None if cache is cold."""
     with _store_lock:
         return _store.get(f"corr_{window}d")
 
 
 def get_returns() -> Optional[pd.DataFrame]:
-    """Retrieve cached master returns DataFrame."""
     with _store_lock:
         return _store.get("returns")
 
 
 def get_default_alerts() -> Optional[pd.DataFrame]:
-    """Retrieve pre-computed alerts for default params."""
     with _store_lock:
         return _store.get("alerts_default")
 
 
 def is_cache_warm() -> bool:
-    """Check if cache has been warmed (startup complete)."""
     with _store_lock:
         return _store.get("_warm", False)
 
 
 def set_staleness(key: str, value: bool) -> None:
-    """Set staleness flag for a data source."""
     with _store_lock:
         _store[key] = value
 
 
 def get_staleness(key: str) -> bool:
-    """Get staleness flag for a data source."""
     with _store_lock:
         return _store.get(key, False)

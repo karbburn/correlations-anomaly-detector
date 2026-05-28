@@ -32,23 +32,23 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
     date,
     correlation: data.correlations[i],
     zscore: data.zscores[i],
-    anomalyRegion: data.anomaly_flags[i] ? 1 : -1, // Map to full scale for background shading
+    anomalyRegion: data.anomaly_flags[i] ? 1 : -1,
   }));
 
   return (
-    <div className="bg-[#0a0a0b] border border-border-muted p-5 rounded-none font-mono">
+    <div className="bg-background border border-border-muted p-5 rounded-none font-mono">
       <div className="flex items-center justify-between mb-4 border-b border-border-muted pb-3">
         <div>
           <h3 className="text-sm font-bold text-white tracking-wider uppercase">
             [PLOT_DRILLDOWN] :: {asset1} × {asset2}
           </h3>
           <p className="text-[10px] text-slate-500 mt-0.5">
-            ROLLING_CORRELATION (BLUE) VS. ROLLING_Z-SCORE (AMBER)
+            ROLLING_CORRELATION (GREEN) VS. ROLLING_Z-SCORE (AMBER)
           </p>
         </div>
         <button
           onClick={onClose}
-          className="text-slate-500 hover:text-accent-blue hover:border-accent-blue border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer"
+          className="text-slate-500 hover:text-accent-primary hover:border-accent-primary border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer"
         >
           [CLOSE]
         </button>
@@ -108,7 +108,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
             
             <Tooltip
               contentStyle={{
-                background: "#0a0a0b",
+                background: "#060d0a",
                 border: "1px solid #f59e0b",
                 borderRadius: "0px",
                 fontSize: "11px",
@@ -130,7 +130,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
             <Line
               yAxisId="corr"
               dataKey="correlation"
-              stroke="#3b82f6"
+              stroke="#10b981"
               strokeWidth={2}
               dot={false}
               name="correlation"

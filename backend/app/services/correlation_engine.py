@@ -12,16 +12,6 @@ def compute_all_pair_correlations(
     returns: pd.DataFrame,
     window: int = 60,
 ) -> pd.DataFrame:
-    """
-    Compute rolling Pearson correlation for all 15 asset pairs.
-    Uses pandas native rolling().corr() — vectorized in C, fast.
-
-    Returns a DataFrame where:
-      - index: date
-      - columns: "ASSET1__ASSET2" for all N*(N-1)/2 pairs
-      - values: rolling correlation coefficient [-1, 1]
-
-    """
     pairs = {}
     assets = [c for c in ASSETS if c in returns.columns]
     min_periods = max(int(window * 0.8), 10)
@@ -38,13 +28,6 @@ def compute_all_pair_correlations(
 
 
 def pair_corr_to_matrix(pair_row: pd.Series, assets: list = None) -> pd.DataFrame:
-    """
-    Reconstruct a square N×N matrix from a single row of pair correlations.
-    Used by /api/correlation/matrix to serve a snapshot without recomputing.
-
-    pair_row: one row from compute_all_pair_correlations output
-              (a pd.Series indexed by "ASSET1__ASSET2" strings)
-    """
     if assets is None:
         assets = ASSETS
 

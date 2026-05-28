@@ -21,7 +21,7 @@ export function WindowSelector() {
             className={clsx(
               "px-3 py-1 text-[10px] font-semibold transition-all duration-150 uppercase cursor-pointer rounded-none",
               w === window
-                ? "bg-accent-blue text-black border-transparent"
+                ? "bg-accent-primary text-black border-transparent"
                 : "text-slate-400 hover:text-white border-transparent hover:bg-[#1a1b23]"
             )}
           >
@@ -42,11 +42,11 @@ export function WindowSelector() {
           onChange={(e) => setThreshold(parseFloat(e.target.value))}
           className="w-20 h-1 bg-[#1a1b23] border border-border-muted appearance-none cursor-pointer
                      [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5
-                     [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-accent-blue
+                     [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-accent-primary
                      [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-none
                      [&::-webkit-slider-thumb]:rounded-none"
         />
-        <span className="text-[10px] text-accent-blue font-bold tabular-nums w-8">
+        <span className="text-[10px] text-accent-primary font-bold tabular-nums w-8">
           ±{threshold.toFixed(1)}σ
         </span>
       </div>

@@ -52,7 +52,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
   if (status === "ready") return null;
 
   return (
-    <div className="fixed inset-0 bg-[#0a0a0b] flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-background flex items-center justify-center z-50 p-4">
       <div className="w-full max-w-sm text-center space-y-4">
         {status === "error" ? (
           <>
@@ -67,8 +67,8 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         ) : (
           <>
             <div className="relative w-12 h-12 mx-auto">
-              <div className="absolute inset-0 rounded-full border-2 border-blue-500/30" />
-              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-400 animate-spin" />
+              <div className="absolute inset-0 rounded-full border-2 border-accent-primary/30" />
+              <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent-teal animate-spin" />
             </div>
             <p className="text-white text-lg font-medium">
               {status === "checking" ? "Connecting to backend..." : "Warming up correlations..."}

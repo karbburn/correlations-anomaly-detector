@@ -42,21 +42,17 @@ async def anomaly_alerts(
     if pair_corrs is None:
         raise HTTPException(503, f"Correlation data for {window}d not available")
 
-    # Compute alerts (or use cached if default params)
     alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
 
-    # Filter by start date
     if start and not alerts.empty:
         alerts = alerts[alerts["date"] >= start]
 
-    # Add window to each alert
     if not alerts.empty:
         alerts = alerts.copy()
         alerts["window"] = window
 
     total_count = len(alerts)
 
-    # Paginate
     page = alerts.iloc[offset:offset + limit] if not alerts.empty else alerts
 
     response.headers["Cache-Control"] = CACHE_HEADER

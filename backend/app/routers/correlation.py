@@ -41,7 +41,6 @@ async def correlation_matrix(
     if pair_corrs is None:
         raise HTTPException(503, f"Correlation data for {window}d not available")
 
-    # Pick the date row
     if date_str:
         target = pd.Timestamp(date_str)
         if target not in pair_corrs.index:
@@ -52,14 +51,12 @@ async def correlation_matrix(
         row = pair_corrs.dropna(how="all").iloc[-1]
         as_of = str(row.name.date()) if hasattr(row.name, "date") else str(row.name)
 
-    # Reconstruct matrices
     returns = get_returns()
     if returns is None:
         raise HTTPException(503, "Returns data not available")
     assets = [a for a in ASSETS if a in returns.columns]
     corr_matrix = pair_corr_to_matrix(row, assets)
 
-    # Compute z-score matrix from pair-level z-scores
     zscore_matrix_df = corr_matrix.copy()
     zscore_matrix_df[:] = 0.0
     anomaly_flags_df = corr_matrix.copy().astype(bool)
@@ -110,7 +107,6 @@ async def correlation_timeseries(
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
-    # Validate asset names against allowed list
     valid_assets = set(ASSETS)
     if asset1 not in valid_assets or asset2 not in valid_assets:
         raise HTTPException(400, f"Invalid asset. Valid: {sorted(valid_assets)}")
@@ -119,7 +115,6 @@ async def correlation_timeseries(
     if pair_corrs is None:
         raise HTTPException(503, f"Correlation data for {window}d not available")
 
-    # Find the pair column (order-independent)
     col = f"{asset1}__{asset2}"
     if col not in pair_corrs.columns:
         col = f"{asset2}__{asset1}"

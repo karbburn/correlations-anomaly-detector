@@ -35,13 +35,26 @@ interface Props {
   regimes: Record<string, string[]>;
 }
 
+import { useAppStore } from "@/lib/store";
+
 export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
+  const theme = useAppStore((s) => s.theme);
 
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;
 
-    // Sample dates to keep rendering manageable (max ~200 columns)
+    const activeColors: Record<string, string> = {
+      strong_positive: theme === "light" ? "#1e40af" : "#3b82f6",
+      mild_positive: theme === "light" ? "rgba(30, 64, 175, 0.4)" : "rgba(59, 130, 246, 0.4)",
+      neutral: theme === "light" ? "#cbd5e1" : "#1f2937",
+      mild_negative: theme === "light" ? "rgba(220, 38, 38, 0.4)" : "rgba(239, 68, 68, 0.4)",
+      strong_negative: theme === "light" ? "#dc2626" : "#ef4444",
+      anomaly: theme === "light" ? "#b45309" : "#f59e0b",
+    };
+
+    const labelColor = theme === "light" ? "#475569" : "#8c909f";
+
     const step = Math.max(1, Math.floor(dates.length / 200));
     const sampledDates = dates.filter((_, i) => i % step === 0);
     const sampledIndices = dates.map((_, i) => i).filter((i) => i % step === 0);
@@ -60,7 +73,6 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    // Pair labels
     pairs.forEach((pair, i) => {
       g.append("text")
         .attr("x", -8)
@@ -69,11 +81,10 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("text-anchor", "end")
         .attr("font-size", 9)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", "#8c909f")
+        .attr("fill", labelColor)
         .text(PAIR_LABELS[pair] ?? pair.replace("__", "×"));
     });
 
-    // Date axis labels (every ~50th sampled date)
     const labelStep = Math.max(1, Math.floor(sampledDates.length / 8));
     sampledDates.forEach((date, i) => {
       if (i % labelStep !== 0) return;
@@ -88,7 +99,6 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .text(new Date(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
     });
 
-    // Heat cells (strictly rectilinear rx=0)
     pairs.forEach((pair, pi) => {
       const pairRegimes = regimes[pair];
       if (!pairRegimes) return;
@@ -101,19 +111,18 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
           .attr("width", cellW)
           .attr("height", cellH - 1)
           .attr("rx", 0)
-          .attr("fill", REGIME_COLORS[regime] ?? "#1f2937")
+          .attr("fill", activeColors[regime] ?? activeColors.neutral)
           .attr("opacity", 0.9);
       });
     });
 
-    // Legend
     const legendData = [
-      { label: "Strong +", color: REGIME_COLORS.strong_positive },
-      { label: "Mild +", color: REGIME_COLORS.mild_positive },
-      { label: "Neutral", color: REGIME_COLORS.neutral },
-      { label: "Mild −", color: REGIME_COLORS.mild_negative },
-      { label: "Strong −", color: REGIME_COLORS.strong_negative },
-      { label: "Anomaly", color: REGIME_COLORS.anomaly },
+      { label: "Strong +", color: activeColors.strong_positive },
+      { label: "Mild +", color: activeColors.mild_positive },
+      { label: "Neutral", color: activeColors.neutral },
+      { label: "Mild −", color: activeColors.mild_negative },
+      { label: "Strong −", color: activeColors.strong_negative },
+      { label: "Anomaly", color: activeColors.anomaly },
     ];
 
     const legend = svg
@@ -136,10 +145,10 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("y", 9)
         .attr("font-size", 8)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", "#8c909f")
+        .attr("fill", labelColor)
         .text(d.label);
     });
-  }, [pairs, dates, regimes]);
+  }, [pairs, dates, regimes, theme]);
 
   return (
     <div className="overflow-x-auto">
