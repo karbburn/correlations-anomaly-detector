@@ -17,15 +17,6 @@ import { useAppStore } from "@/lib/store";
 import { fetchRegimeHistory } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
-
 function Dashboard() {
   const [ready, setReady] = useState(false);
   const onReady = useCallback(() => setReady(true), []);
@@ -167,6 +158,15 @@ function Dashboard() {
 }
 
 export default function Page() {
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+      },
+    },
+  }));
+
   return (
     <QueryClientProvider client={queryClient}>
       <Dashboard />
