@@ -12,6 +12,7 @@ warm_cache() is called at startup (lifespan) and hourly (scheduler).
 
 import asyncio
 import logging
+import threading
 from pathlib import Path
 from typing import Optional
 
@@ -30,6 +31,7 @@ settings = get_settings()
 # ---------------------------------------------------------------------------
 
 _store: dict = {}
+_store_lock = threading.Lock()
 
 
 async def warm_cache() -> None:
@@ -52,26 +54,30 @@ def _warm_sync() -> None:
     logger.info("Fetching master returns...")
     returns = build_master_dataframe(start=settings.DATA_START_DATE)
     returns.to_parquet(cache_dir / "master_returns.parquet")
-    _store["returns"] = returns
-    logger.info(f"  Returns: {returns.shape[0]} rows × {returns.shape[1]} assets")
 
     # 2. Compute rolling correlations for all 3 windows
+    corr_data = {}
     for window in [30, 60, 252]:
         logger.info(f"Computing window={window}d correlations...")
         pair_corrs = compute_all_pair_correlations(returns, window=window)
         pair_corrs.to_parquet(cache_dir / f"corr_{window}d.parquet")
-        _store[f"corr_{window}d"] = pair_corrs
+        corr_data[f"corr_{window}d"] = pair_corrs
         logger.info(f"  corr_{window}d: {pair_corrs.shape}")
 
     # 3. Pre-compute alerts for default params
     logger.info("Computing default anomaly alerts...")
-    default_corrs = _store["corr_60d"]
+    default_corrs = corr_data["corr_60d"]
     alerts = detect_anomalies(default_corrs, threshold=settings.DEFAULT_THRESHOLD)
     alerts.to_parquet(cache_dir / f"alerts_60d_{settings.DEFAULT_THRESHOLD}.parquet")
-    _store["alerts_default"] = alerts
-    logger.info(f"  Alerts: {len(alerts)} rows")
 
-    _store["_warm"] = True
+    # 4. Atomically update the in-memory store
+    with _store_lock:
+        _store["returns"] = returns
+        _store.update(corr_data)
+        _store["alerts_default"] = alerts
+        _store["_warm"] = True
+    logger.info(f"  Returns: {returns.shape[0]} rows × {returns.shape[1]} assets")
+    logger.info(f"  Alerts: {len(alerts)} rows")
     logger.info("Cache warm complete ✅")
 
 
@@ -81,19 +87,35 @@ def _warm_sync() -> None:
 
 def get_pair_corrs(window: int) -> Optional[pd.DataFrame]:
     """Retrieve cached correlation DataFrame. Returns None if cache is cold."""
-    return _store.get(f"corr_{window}d")
+    with _store_lock:
+        return _store.get(f"corr_{window}d")
 
 
 def get_returns() -> Optional[pd.DataFrame]:
     """Retrieve cached master returns DataFrame."""
-    return _store.get("returns")
+    with _store_lock:
+        return _store.get("returns")
 
 
 def get_default_alerts() -> Optional[pd.DataFrame]:
     """Retrieve pre-computed alerts for default params."""
-    return _store.get("alerts_default")
+    with _store_lock:
+        return _store.get("alerts_default")
 
 
 def is_cache_warm() -> bool:
     """Check if cache has been warmed (startup complete)."""
-    return _store.get("_warm", False)
+    with _store_lock:
+        return _store.get("_warm", False)
+
+
+def set_staleness(key: str, value: bool) -> None:
+    """Set staleness flag for a data source."""
+    with _store_lock:
+        _store[key] = value
+
+
+def get_staleness(key: str) -> bool:
+    """Get staleness flag for a data source."""
+    with _store_lock:
+        return _store.get(key, False)
