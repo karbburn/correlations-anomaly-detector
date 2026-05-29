@@ -49,3 +49,7 @@ design-system/
 # Review artifacts
 REVIEW.md
 REVIEW-FIX.md
+UI-REVIEW.md
+
+# Planning artifacts
+.planning/
