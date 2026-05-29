@@ -8,8 +8,7 @@ import numpy as np
 from fastapi import APIRouter, Query, Response, HTTPException
 
 from app.services.cache import get_pair_corrs, get_pair_zscores, get_default_alerts, is_cache_warm
-from app.services.anomaly_detector import detect_anomalies, classify_regime, compute_zscore_series
-from app.services.correlation_engine import ASSETS
+from app.services.anomaly_detector import detect_anomalies
 from app.services.interpretation import interpret_anomaly
 from app.models.schemas import AlertsResponse
 from app.config import get_settings

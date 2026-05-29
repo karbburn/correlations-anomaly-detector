@@ -2,11 +2,10 @@
 Data ingestion layer — fetches and normalizes 6 asset classes.
 """
 
-import io
 import logging
 import datetime
 from typing import Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd

@@ -8,7 +8,6 @@ import numpy as np
 from fastapi import APIRouter, Response, HTTPException
 
 from app.services.cache import get_default_alerts, get_pair_corrs, is_cache_warm
-from app.services.anomaly_detector import compute_zscore_series
 from app.config import get_settings
 
 router = APIRouter()
