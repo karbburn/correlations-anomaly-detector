@@ -26,7 +26,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
     let cancelled = false;
 
     const poll = async () => {
-      const maxAttempts = 40;
+      const maxAttempts = 60;
       for (let i = 0; i < maxAttempts; i++) {
         if (cancelled) return;
         try {
