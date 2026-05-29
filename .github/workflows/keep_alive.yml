@@ -2,7 +2,8 @@ name: Keep Render Alive
 
 on:
   schedule:
-    - cron: "0 */1 * * *"   # Every hour
+    - cron: "*/10 * * * *"  # Every 10 min (Render spins down after 15 min inactivity)
+  workflow_dispatch:        # Manual trigger via GitHub UI
 
 jobs:
   ping:
@@ -10,4 +11,5 @@ jobs:
     steps:
       - name: Ping backend health
         run: |
-          curl -sf "${{ secrets.RENDER_HEALTH_URL }}/api/health" || echo "Backend not responding"
+          curl -sf "https://correlations-anomaly-detector-backend.onrender.com/api/health" \
+            || echo "Backend not responding (expected if container is cold-starting)"
