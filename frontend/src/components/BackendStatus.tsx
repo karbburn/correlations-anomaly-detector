@@ -4,18 +4,9 @@ import { fetchHealth } from "@/lib/api";
 
 type Status = "checking" | "warming" | "ready" | "error";
 
-const STAGE_MESSAGES: Record<string, string> = {
-  idle: "Initializing...",
-  loading_cache: "Loading cached data...",
-  fetching: "Fetching market data...",
-  computing: "Computing correlations...",
-  ready: "Ready",
-};
-
 export function BackendStatus({ onReady }: { onReady: () => void }) {
   const [status, setStatus] = useState<Status>("checking");
   const [elapsed, setElapsed] = useState(0);
-  const [stage, setStage] = useState("idle");
 
   useEffect(() => {
     const start = Date.now();
@@ -32,16 +23,10 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         try {
           const data = await fetchHealth();
           if (cancelled) return;
-          if (data.warming_stage) {
-            setStage(data.warming_stage);
-          }
-          if (data.startup_complete && data.cache_status?.corr_60d?.fresh) {
-            setStatus("ready");
-            clearInterval(timer);
-            onReady();
-            return;
-          }
-          setStatus("warming");
+          setStatus("ready");
+          clearInterval(timer);
+          onReady();
+          return;
         } catch {
           if (cancelled) return;
           setStatus(i === 0 ? "checking" : "warming");
@@ -64,8 +49,6 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
   }, []);
 
   if (status === "ready") return null;
-
-  const stageMessage = STAGE_MESSAGES[stage] || "Warming up correlations...";
 
   return (
     <div className="fixed inset-0 bg-background flex items-center justify-center z-50 p-4">
@@ -93,7 +76,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
               <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-accent-teal animate-spin" />
             </div>
             <p className="text-foreground text-lg font-medium">
-              {status === "checking" ? "Connecting to backend..." : stageMessage}
+              Connecting to backend...
             </p>
             <p className="text-dim text-sm tabular-nums">{elapsed}s</p>
             {elapsed > 10 && (

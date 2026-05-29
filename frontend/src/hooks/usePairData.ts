@@ -12,5 +12,10 @@ export function usePairData(asset1: string, asset2: string) {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: !!asset1 && !!asset2,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.dates && data.dates.length > 0) return false;
+      return 5000;
+    },
   });
 }

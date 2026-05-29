@@ -17,7 +17,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import get_settings
 from app.scheduler import start_scheduler
-from app.services.cache import warm_cache
+from app.services.cache import warm_cache, mark_server_started
 from app.routers import health, correlation, anomaly, summary
 
 settings = get_settings()
@@ -54,6 +54,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     import asyncio
+    mark_server_started()
     asyncio.get_event_loop().create_task(_warm_background())
     start_scheduler()
     yield

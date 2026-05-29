@@ -5,11 +5,13 @@ Responses include Cache-Control: public, max-age=300, stale-while-revalidate=60
 because correlation data only changes when the cache refreshes (hourly).
 """
 
+import datetime
+
 import numpy as np
 import pandas as pd
 from fastapi import APIRouter, Query, Response, HTTPException
 
-from app.services.cache import get_pair_corrs, get_returns, is_cache_warm
+from app.services.cache import get_pair_corrs, get_returns
 from app.services.correlation_engine import pair_corr_to_matrix, ASSETS
 from app.services.anomaly_detector import compute_zscore_series
 from app.models.schemas import CorrelationMatrix
@@ -31,15 +33,20 @@ async def correlation_matrix(
     Return the 6×6 correlation matrix for a given window and date.
     Also returns the z-score matrix and anomaly flags.
     """
-    if not is_cache_warm():
-        raise HTTPException(503, "Server is still warming up — try again shortly")
-
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
     pair_corrs = get_pair_corrs(window)
     if pair_corrs is None:
-        raise HTTPException(503, f"Correlation data for {window}d not available")
+        response.headers["Cache-Control"] = CACHE_HEADER
+        return {
+            "window": window,
+            "as_of_date": str(datetime.date.today()),
+            "assets": [],
+            "matrix": [],
+            "zscore_matrix": [],
+            "anomaly_flags": [],
+        }
 
     if date_str:
         try:
@@ -55,9 +62,7 @@ async def correlation_matrix(
         as_of = str(row.name.date()) if hasattr(row.name, "date") else str(row.name)
 
     returns = get_returns()
-    if returns is None:
-        raise HTTPException(503, "Returns data not available")
-    assets = [a for a in ASSETS if a in returns.columns]
+    assets = [a for a in ASSETS if returns is not None and a in returns.columns]
     corr_matrix = pair_corr_to_matrix(row, assets)
 
     zscore_matrix_df = corr_matrix.copy()
@@ -104,9 +109,6 @@ async def correlation_timeseries(
     """
     Return rolling correlation + z-score timeseries for one asset pair.
     """
-    if not is_cache_warm():
-        raise HTTPException(503, "Server is still warming up")
-
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
@@ -116,7 +118,15 @@ async def correlation_timeseries(
 
     pair_corrs = get_pair_corrs(window)
     if pair_corrs is None:
-        raise HTTPException(503, f"Correlation data for {window}d not available")
+        response.headers["Cache-Control"] = CACHE_HEADER
+        return {
+            "pair": [asset1, asset2],
+            "window": window,
+            "dates": [],
+            "correlations": [],
+            "zscores": [],
+            "anomaly_flags": [],
+        }
 
     col = f"{asset1}__{asset2}"
     if col not in pair_corrs.columns:

@@ -80,6 +80,11 @@ function Dashboard() {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: ready,
+    refetchInterval: (query) => {
+      const data = query.state.data;
+      if (data && data.pairs && data.pairs.length > 0) return false;
+      return 5000;
+    },
   });
 
   return (

@@ -35,9 +35,17 @@ async def warm_cache() -> None:
     await loop.run_in_executor(None, _warm_sync)
 
 
+def mark_server_started() -> None:
+    """Mark server as started so health endpoint responds immediately."""
+    with _store_lock:
+        _store["_warm"] = True
+
+
 def _warm_sync() -> None:
     cache_dir = Path(settings.CACHE_DIR)
     cache_dir.mkdir(parents=True, exist_ok=True)
+
+    mark_server_started()
 
     try:
         _set_stage("loading_cache")

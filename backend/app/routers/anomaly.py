@@ -5,9 +5,10 @@ Alerts support offset-based pagination with total_count.
 """
 
 import numpy as np
+import pandas as pd
 from fastapi import APIRouter, Query, Response, HTTPException
 
-from app.services.cache import get_pair_corrs, get_pair_zscores, get_default_alerts, is_cache_warm
+from app.services.cache import get_pair_corrs, get_pair_zscores, get_default_alerts
 from app.services.anomaly_detector import detect_anomalies
 from app.services.interpretation import interpret_anomaly
 from app.models.schemas import AlertsResponse
@@ -86,9 +87,6 @@ async def anomaly_alerts(
     Uses cached alerts when params match defaults to avoid recomputation.
     Uses cached z-scores for fast threshold re-filtering.
     """
-    if not is_cache_warm():
-        raise HTTPException(503, "Server is still warming up")
-
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
@@ -96,19 +94,19 @@ async def anomaly_alerts(
     if window == settings.DEFAULT_WINDOW and abs(threshold - settings.DEFAULT_THRESHOLD) < 1e-6:
         alerts = get_default_alerts()
         if alerts is None:
-            raise HTTPException(503, "Cached alerts not available")
+            alerts = pd.DataFrame()
     else:
         # Try fast path: use cached z-scores for re-filtering
         pair_corrs = get_pair_corrs(window)
         if pair_corrs is None:
-            raise HTTPException(503, f"Correlation data for {window}d not available")
-
-        zscore_df = get_pair_zscores(window)
-        if zscore_df is not None:
-            alerts = _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold)
+            alerts = pd.DataFrame()
         else:
-            # Fallback: full recomputation
-            alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
+            zscore_df = get_pair_zscores(window)
+            if zscore_df is not None:
+                alerts = _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold)
+            else:
+                # Fallback: full recomputation
+                alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
 
     if start and not alerts.empty:
         alerts = alerts[alerts["date"] >= start]
@@ -175,12 +173,10 @@ async def regime_history(
     The frontend classifies regimes client-side using its threshold,
     so this endpoint is threshold-independent and only refetches on window change.
     """
-    if not is_cache_warm():
-        raise HTTPException(503, "Server is still warming up")
-
     pair_corrs = get_pair_corrs(window)
     if pair_corrs is None:
-        raise HTTPException(503, f"Correlation data for {window}d not available")
+        response.headers["Cache-Control"] = CACHE_HEADER
+        return {"pairs": [], "dates": [], "correlations": {}, "zscores": {}}
 
     pair_names = list(pair_corrs.columns)
     clean = pair_corrs.dropna(how="all")
@@ -188,7 +184,8 @@ async def regime_history(
 
     zscore_df = get_pair_zscores(window)
     if zscore_df is None:
-        raise HTTPException(503, f"Z-score data for {window}d not available")
+        response.headers["Cache-Control"] = CACHE_HEADER
+        return {"pairs": list(pair_corrs.columns), "dates": [], "correlations": {}, "zscores": {}}
 
     correlations = {}
     zscores = {}

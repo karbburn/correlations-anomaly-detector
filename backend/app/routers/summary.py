@@ -5,9 +5,10 @@ Summary endpoint — lightweight dashboard overview from cached data.
 from datetime import date, timedelta
 
 import numpy as np
-from fastapi import APIRouter, Response, HTTPException
+import pandas as pd
+from fastapi import APIRouter, Response
 
-from app.services.cache import get_default_alerts, get_pair_corrs, is_cache_warm
+from app.services.cache import get_default_alerts, get_pair_corrs
 from app.config import get_settings
 
 router = APIRouter()
@@ -22,14 +23,8 @@ async def dashboard_summary(response: Response):
     Return a lightweight summary from cached data.
     Zero recomputation — reads directly from the in-memory store.
     """
-    if not is_cache_warm():
-        raise HTTPException(503, "Server is still warming up — try again shortly")
-
-    alerts_df = get_default_alerts()
-    pair_corrs = get_pair_corrs(settings.DEFAULT_WINDOW)
-
-    if alerts_df is None or pair_corrs is None:
-        raise HTTPException(503, "Cache data not available")
+    alerts_df = get_default_alerts() or pd.DataFrame()
+    pair_corrs = get_pair_corrs(settings.DEFAULT_WINDOW) or pd.DataFrame()
 
     today = str(date.today())
 
