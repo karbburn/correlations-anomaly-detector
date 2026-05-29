@@ -1,4 +1,5 @@
 "use client";
+import { useRef, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import clsx from "clsx";
 
@@ -9,6 +10,15 @@ export function WindowSelector() {
   const threshold = useAppStore((s) => s.threshold);
   const setWindow = useAppStore((s) => s.setWindow);
   const setThreshold = useAppStore((s) => s.setThreshold);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleChange = useCallback((value: number) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setThreshold(value);
+    }, 300);
+  }, [setThreshold]);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 font-mono text-xs">
@@ -44,8 +54,9 @@ export function WindowSelector() {
           min={1.0}
           max={3.5}
           step={0.1}
-          value={threshold}
-          onChange={(e) => setThreshold(parseFloat(e.target.value))}
+          defaultValue={threshold}
+          key={threshold}
+          onChange={(e) => handleChange(parseFloat(e.target.value))}
           aria-valuemin={1.0}
           aria-valuemax={3.5}
           aria-valuenow={threshold}

@@ -75,8 +75,8 @@ function Dashboard() {
   );
 
   const { data: regimeData } = useQuery({
-    queryKey: ["regimeHistory", window, threshold],
-    queryFn: () => fetchRegimeHistory(window, threshold),
+    queryKey: ["regimeHistory", window],
+    queryFn: () => fetchRegimeHistory(window),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: ready,
@@ -234,7 +234,8 @@ function Dashboard() {
                   <RegimeTimeline
                     pairs={regimeData.pairs}
                     dates={regimeData.dates}
-                    regimes={regimeData.regimes}
+                    correlations={regimeData.correlations}
+                    zscores={regimeData.zscores}
                   />
                 </ErrorBoundary>
               </div>

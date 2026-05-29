@@ -6,6 +6,7 @@ import io
 import logging
 import datetime
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy as np
 import pandas as pd
@@ -118,7 +119,7 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
 @with_circuit_breaker("yfinance")
 @retry(
     stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
-    wait=wait_exponential(multiplier=2, min=2, max=10),
+    wait=wait_exponential(multiplier=2, min=2, max=5),
     retry=retry_if_exception_type(DataUnavailableError),
     reraise=True,
     before_sleep=lambda retry_state: logger.warning(
@@ -168,7 +169,7 @@ def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
 
 @retry(
     stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
-    wait=wait_exponential(multiplier=2, min=2, max=10),
+    wait=wait_exponential(multiplier=2, min=2, max=5),
     reraise=True,
     retry=retry_if_exception_type(DataUnavailableError),
     before_sleep=lambda retry_state: logger.warning(
@@ -241,7 +242,7 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
 
 @retry(
     stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
-    wait=wait_exponential(multiplier=2, min=2, max=10),
+    wait=wait_exponential(multiplier=2, min=2, max=5),
     reraise=True,
     retry=retry_if_exception_type(DataUnavailableError),
     before_sleep=lambda retry_state: logger.warning(
@@ -357,15 +358,20 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
     if end is None:
         end = datetime.date.today().strftime("%Y-%m-%d")
 
-    prices = _fetch_yfinance_safe(start, end)
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        future_prices = executor.submit(_fetch_yfinance_safe, start, end)
+        future_gsec = executor.submit(_fetch_fbil_safe, start)
+        future_fii = executor.submit(_fetch_fii_safe, start)
+
+        prices = future_prices.result()
+        gsec_diff = future_gsec.result()
+        fii_norm = future_fii.result()
+
     _validate_dataframe(prices, "prices")
     returns = prices.pct_change()
 
     nifty_returns = returns["NIFTY50"].dropna()
     master_index = nifty_returns.index
-
-    gsec_diff = _fetch_fbil_safe(start)
-    fii_norm = _fetch_fii_safe(start)
 
     gsec_diff = _ensure_unique_index(gsec_diff, "GSEC10Y")
     fii_norm = _ensure_unique_index(fii_norm, "FII_FLOW")

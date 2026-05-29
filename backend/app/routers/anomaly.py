@@ -7,7 +7,7 @@ Alerts support offset-based pagination with total_count.
 import numpy as np
 from fastapi import APIRouter, Query, Response, HTTPException
 
-from app.services.cache import get_pair_corrs, get_default_alerts, is_cache_warm
+from app.services.cache import get_pair_corrs, get_pair_zscores, get_default_alerts, is_cache_warm
 from app.services.anomaly_detector import detect_anomalies, classify_regime, compute_zscore_series
 from app.services.correlation_engine import ASSETS
 from app.services.interpretation import interpret_anomaly
@@ -18,6 +18,58 @@ router = APIRouter()
 settings = get_settings()
 
 CACHE_HEADER = "public, max-age=300, stale-while-revalidate=60"
+
+
+def _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold):
+    """Build alerts from pre-computed z-scores — fast re-filter on threshold change."""
+    alerts = []
+    for col in pair_corrs.columns:
+        parts = col.split("__", 1)
+        if len(parts) != 2:
+            continue
+        asset1, asset2 = parts
+
+        z_col = f"{col}__zscore"
+        mean_col = f"{col}__mean"
+        std_col = f"{col}__std"
+
+        if z_col not in zscore_df.columns:
+            continue
+
+        z_series = zscore_df[z_col].dropna()
+        flagged = z_series[z_series.abs() > threshold]
+
+        for date, z_val in flagged.items():
+            if np.isnan(z_val) or np.isinf(z_val):
+                continue
+            corr_val = pair_corrs[col].get(date, 0.0) if date in pair_corrs.index else 0.0
+            mean_val = zscore_df[mean_col].get(date, 0.0) if date in zscore_df.index else 0.0
+            std_val = zscore_df[std_col].get(date, 0.0) if date in zscore_df.index else 0.0
+
+            alerts.append({
+                "date": str(date.date()) if hasattr(date, "date") else str(date),
+                "asset1": asset1,
+                "asset2": asset2,
+                "correlation": round(float(corr_val), 4),
+                "zscore": round(float(z_val), 4),
+                "historical_mean": round(float(mean_val), 4),
+                "historical_std": round(float(std_val), 4) if not np.isnan(std_val) else 0.0,
+                "regime": "breakdown" if z_val < 0 else "surge",
+            })
+
+    if not alerts:
+        import pandas as pd
+        return pd.DataFrame(columns=[
+            "date", "asset1", "asset2", "correlation",
+            "zscore", "historical_mean", "historical_std", "regime",
+        ])
+
+    import pandas as pd
+    return (
+        pd.DataFrame(alerts)
+        .sort_values("date", ascending=False)
+        .reset_index(drop=True)
+    )
 
 
 @router.get("/alerts", response_model=AlertsResponse)
@@ -32,8 +84,8 @@ async def anomaly_alerts(
 ):
     """
     Return paginated anomaly alerts sorted by date descending.
-    Supports offset-based pagination with total_count for frontend paging.
     Uses cached alerts when params match defaults to avoid recomputation.
+    Uses cached z-scores for fast threshold re-filtering.
     """
     if not is_cache_warm():
         raise HTTPException(503, "Server is still warming up")
@@ -41,16 +93,23 @@ async def anomaly_alerts(
     if window not in (30, 60, 252):
         raise HTTPException(400, "window must be 30, 60, or 252")
 
-    # Use cached alerts for default params to avoid expensive recomputation
+    # Use cached alerts for default params
     if window == settings.DEFAULT_WINDOW and abs(threshold - settings.DEFAULT_THRESHOLD) < 1e-6:
         alerts = get_default_alerts()
         if alerts is None:
             raise HTTPException(503, "Cached alerts not available")
     else:
+        # Try fast path: use cached z-scores for re-filtering
         pair_corrs = get_pair_corrs(window)
         if pair_corrs is None:
             raise HTTPException(503, f"Correlation data for {window}d not available")
-        alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
+
+        zscore_df = get_pair_zscores(window)
+        if zscore_df is not None:
+            alerts = _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold)
+        else:
+            # Fallback: full recomputation
+            alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
 
     if start and not alerts.empty:
         alerts = alerts[alerts["date"] >= start]
@@ -111,11 +170,11 @@ async def anomaly_alerts(
 async def regime_history(
     response: Response,
     window: int = Query(default=60),
-    threshold: float = Query(default=2.0),
 ):
     """
-    Return correlation regime classification per date per pair.
-    Flat structure optimized for the D3 heat calendar on the frontend.
+    Return raw correlation and z-score data per date per pair.
+    The frontend classifies regimes client-side using its threshold,
+    so this endpoint is threshold-independent and only refetches on window change.
     """
     if not is_cache_warm():
         raise HTTPException(503, "Server is still warming up")
@@ -124,29 +183,36 @@ async def regime_history(
     if pair_corrs is None:
         raise HTTPException(503, f"Correlation data for {window}d not available")
 
-    # Get pairs and dates
     pair_names = list(pair_corrs.columns)
     clean = pair_corrs.dropna(how="all")
     dates = [str(d.date()) if hasattr(d, "date") else str(d) for d in clean.index]
 
-    regimes = {}
-    for col in pair_names:
-        corr_series = clean[col]
-        z_series, _, _ = compute_zscore_series(corr_series, settings.HIST_WINDOW)
+    zscore_df = get_pair_zscores(window)
+    if zscore_df is None:
+        raise HTTPException(503, f"Z-score data for {window}d not available")
 
-        regimes[col] = [
-            classify_regime(
-                float(corr_series.iloc[i]) if not np.isnan(corr_series.iloc[i]) else 0.0,
-                float(z_series.iloc[i]) if not np.isnan(z_series.iloc[i]) else 0.0,
-                threshold,
-            )
+    correlations = {}
+    zscores = {}
+    for col in pair_names:
+        z_col = f"{col}__zscore"
+        correlations[col] = [
+            round(float(clean[col].iloc[i]), 4) if not np.isnan(clean[col].iloc[i]) else None
             for i in range(len(clean))
         ]
+        if z_col in zscore_df.columns:
+            z_series = zscore_df[z_col].reindex(clean.index)
+            zscores[col] = [
+                round(float(z_series.iloc[i]), 4) if not np.isnan(z_series.iloc[i]) else None
+                for i in range(len(clean))
+            ]
+        else:
+            zscores[col] = [None] * len(clean)
 
     response.headers["Cache-Control"] = CACHE_HEADER
 
     return {
         "pairs": pair_names,
         "dates": dates,
-        "regimes": regimes,
+        "correlations": correlations,
+        "zscores": zscores,
     }

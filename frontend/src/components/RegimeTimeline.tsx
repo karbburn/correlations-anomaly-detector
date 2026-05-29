@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, memo } from "react";
+import { useEffect, useRef, memo, useMemo } from "react";
 import * as d3 from "d3";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
@@ -22,15 +22,37 @@ const PAIR_LABELS: Record<string, string> = {
   GSEC10Y__FII_FLOW: "GSec×FII",
 };
 
+function classifyRegime(corr: number | null, z: number | null, threshold: number): string {
+  if (corr === null || z === null || isNaN(corr) || isNaN(z)) return "neutral";
+  if (Math.abs(z) > threshold) return "anomaly";
+  if (corr >= 0.7) return "strong_positive";
+  if (corr >= 0.3) return "mild_positive";
+  if (corr > -0.3) return "neutral";
+  if (corr > -0.7) return "mild_negative";
+  return "strong_negative";
+}
+
 interface Props {
   pairs: string[];
   dates: string[];
-  regimes: Record<string, string[]>;
+  correlations: Record<string, (number | null)[]>;
+  zscores: Record<string, (number | null)[]>;
 }
 
-export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {
+export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, correlations, zscores }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const theme = useAppStore((s) => s.theme);
+  const threshold = useAppStore((s) => s.threshold);
+
+  const regimes = useMemo(() => {
+    const result: Record<string, string[]> = {};
+    for (const pair of pairs) {
+      const corrs = correlations[pair] ?? [];
+      const zs = zscores[pair] ?? [];
+      result[pair] = corrs.map((c, i) => classifyRegime(c, zs[i] ?? null, threshold));
+    }
+    return result;
+  }, [pairs, correlations, zscores, threshold]);
 
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;

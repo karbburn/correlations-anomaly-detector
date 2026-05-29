@@ -70,9 +70,8 @@ export async function fetchAnomalyAlerts(
 
 export async function fetchRegimeHistory(
   window: number,
-  threshold: number,
 ): Promise<RegimeHistoryResponse> {
-  return apiFetch<RegimeHistoryResponse>("/api/anomaly/regime-history", { window, threshold });
+  return apiFetch<RegimeHistoryResponse>("/api/anomaly/regime-history", { window });
 }
 
 export async function fetchSummary(): Promise<SummaryResponse> {

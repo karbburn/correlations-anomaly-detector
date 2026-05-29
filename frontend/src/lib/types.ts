@@ -50,13 +50,15 @@ export interface AlertsResponse {
 export interface HealthResponse {
   status: string;
   startup_complete: boolean;
+  warming_stage?: string;
   cache_status: Record<string, { fresh: boolean; rows?: number }>;
 }
 
 export interface RegimeHistoryResponse {
   pairs: string[];
   dates: string[];
-  regimes: Record<string, string[]>;
+  correlations: Record<string, (number | null)[]>;
+  zscores: Record<string, (number | null)[]>;
 }
 
 export interface SummaryTopMover {
