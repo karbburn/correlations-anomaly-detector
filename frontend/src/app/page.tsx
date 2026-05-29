@@ -149,9 +149,14 @@ function Dashboard() {
               <p>
                 Cross-Asset Correlations Anomaly Detector v2.0
               </p>
-              <p className="text-accent-primary font-semibold tracking-wider">
+              <a
+                href="https://www.linkedin.com/in/sourabh-pradhan07/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent-primary font-semibold tracking-wider hover:underline"
+              >
                 Sourabh
-              </p>
+              </a>
               <p>
                 Data: yfinance &middot; FBIL &middot; NSE
               </p>
