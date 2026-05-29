@@ -8,7 +8,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
   const [status, setStatus] = useState<Status>("checking");
   const [elapsed, setElapsed] = useState(0);
 
-  const stableOnReady = useCallback(onReady, [onReady]);
+  const stableOnReady = useCallback(() => onReady(), [onReady]);
 
   useEffect(() => {
     const start = Date.now();

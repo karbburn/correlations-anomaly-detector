@@ -11,6 +11,7 @@ import { PairDrilldown } from "@/components/PairDrilldown";
 import { AnomalyFeed } from "@/components/AnomalyFeed";
 import { RegimeTimeline } from "@/components/RegimeTimeline";
 import { AssetLegend } from "@/components/AssetLegend";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 import { useCorrelationMatrix } from "@/hooks/useCorrelationMatrix";
 import { usePairData } from "@/hooks/usePairData";
@@ -28,9 +29,9 @@ function Dashboard() {
   const window = useAppStore((s) => s.window);
   const threshold = useAppStore((s) => s.threshold);
 
-  const { data: matrixData, isLoading: matrixLoading } = useCorrelationMatrix();
+  const { data: matrixData, isLoading: matrixLoading, isError: matrixError, error: matrixErr, refetch: refetchMatrix } = useCorrelationMatrix();
 
-  const { data: pairData, isLoading: pairLoading } = usePairData(
+  const { data: pairData, isLoading: pairLoading, isError: pairError, error: pairErr } = usePairData(
     selectedPair?.[0] ?? "",
     selectedPair?.[1] ?? ""
   );
@@ -86,35 +87,63 @@ function Dashboard() {
                 <h2 className="text-xs font-semibold text-muted mb-4 uppercase tracking-wider font-mono">
                   [CORRELATION_MATRIX]
                 </h2>
-                {matrixLoading ? (
-                  <div className="h-96 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
-                  </div>
-                ) : matrixData ? (
-                  <CorrelationMatrix
-                    matrix={matrixData.matrix}
-                    zscoreMatrix={matrixData.zscore_matrix}
-                    threshold={threshold}
-                    onPairSelect={(a1, a2) => selectPair(a1, a2)}
-                  />
-                ) : (
-                  <p className="text-dim text-xs font-mono">No matrix data available</p>
-                )}
+                <ErrorBoundary>
+                  {matrixLoading ? (
+                    <div className="h-96 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
+                    </div>
+                  ) : matrixError ? (
+                    <div className="h-96 flex flex-col items-center justify-center gap-3">
+                      <p className="text-xs text-accent-red">
+                        {matrixErr?.message || "Failed to load correlation matrix."}
+                      </p>
+                      <button
+                        onClick={() => refetchMatrix()}
+                        className="px-3 py-1 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                      >
+                        RETRY
+                      </button>
+                    </div>
+                  ) : matrixData ? (
+                    <CorrelationMatrix
+                      matrix={matrixData.matrix}
+                      zscoreMatrix={matrixData.zscore_matrix}
+                      threshold={threshold}
+                      onPairSelect={(a1, a2) => selectPair(a1, a2)}
+                    />
+                  ) : (
+                    <p className="text-dim text-xs font-mono">No matrix data available</p>
+                  )}
+                </ErrorBoundary>
                 <p className="text-[9px] text-dim mt-4 text-center font-mono">
                   &gt;&gt; SELECT CELL TO PLOT HISTORICAL DRILLDOWN &lt;&lt;
                 </p>
               </div>
 
               {/* Anomaly Feed */}
-              <AnomalyFeed />
+              <ErrorBoundary>
+                <AnomalyFeed />
+              </ErrorBoundary>
             </div>
 
             {/* Pair Drilldown (conditionally rendered) */}
             {selectedPair && (
-              <div>
+              <ErrorBoundary>
                 {pairLoading ? (
                   <div className="h-48 flex items-center justify-center bg-background border border-border-muted rounded-none">
                     <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
+                  </div>
+                ) : pairError ? (
+                  <div className="h-48 flex flex-col items-center justify-center gap-3 bg-background border border-border-muted rounded-none">
+                    <p className="text-xs text-accent-red">
+                      {pairErr?.message || "Failed to load pair data."}
+                    </p>
+                    <button
+                      onClick={clearPair}
+                      className="px-3 py-1 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                    >
+                      CLOSE
+                    </button>
                   </div>
                 ) : pairData ? (
                   <PairDrilldown
@@ -125,7 +154,7 @@ function Dashboard() {
                     onClose={clearPair}
                   />
                 ) : null}
-              </div>
+              </ErrorBoundary>
             )}
 
             {/* Regime Timeline */}
@@ -134,11 +163,13 @@ function Dashboard() {
                 <h2 className="text-xs font-semibold text-muted mb-4 uppercase tracking-wider font-mono">
                   [REGIME_TIMELINE]
                 </h2>
-                <RegimeTimeline
-                  pairs={regimeData.pairs}
-                  dates={regimeData.dates}
-                  regimes={regimeData.regimes}
-                />
+                <ErrorBoundary>
+                  <RegimeTimeline
+                    pairs={regimeData.pairs}
+                    dates={regimeData.dates}
+                    regimes={regimeData.regimes}
+                  />
+                </ErrorBoundary>
               </div>
             )}
           </main>
@@ -153,7 +184,8 @@ function Dashboard() {
                 href="https://www.linkedin.com/in/sourabh-pradhan07/"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-accent-primary font-semibold tracking-wider hover:underline"
+                aria-label="Sourabh Pradhan on LinkedIn"
+                className="text-accent-primary font-semibold tracking-wider hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               >
                 Sourabh
               </a>

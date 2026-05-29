@@ -2,7 +2,6 @@
 import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
 import { ASSETS } from "@/lib/types";
-
 import { useAppStore } from "@/lib/store";
 
 const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
@@ -12,6 +11,10 @@ interface Props {
   zscoreMatrix: number[][];
   threshold: number;
   onPairSelect: (a1: string, a2: string) => void;
+}
+
+function getCssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export const CorrelationMatrix = memo(function CorrelationMatrix({
@@ -26,6 +29,8 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
   const render = useCallback(() => {
     if (!svgRef.current || !matrix.length) return;
 
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const n = ASSETS.length;
     const cellSize = 76;
     const margin = { top: 70, right: 20, bottom: 20, left: 90 };
@@ -35,17 +40,19 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("role", "grid");
+    svg.attr("aria-label", "Correlation matrix heatmap. Use arrow keys to navigate cells, Enter to select a pair.");
+
+    const accentRed = getCssVar("--accent-red") || (theme === "light" ? "#dc2626" : "#ef4444");
+    const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
+    const accentAmber = getCssVar("--accent-amber") || (theme === "light" ? "#b45309" : "#f59e0b");
+    const bgElevated = getCssVar("--bg-elevated") || (theme === "light" ? "#ede8df" : "#0d1f18");
+    const borderDefault = getCssVar("--border-default") || (theme === "light" ? "#d4cfc6" : "#1a3a2e");
+    const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
 
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
-      .range(
-        theme === "light"
-          ? ["#dc2626", "#d4cfc6", "#1e40af"]
-          : ["#ef4444", "#1f2937", "#3b82f6"]
-      );
-
-    const amberColor = theme === "light" ? "#b45309" : "#f59e0b";
-    const labelColor = theme === "light" ? "#6b6b6b" : "#8c909f";
+      .range([accentRed, bgElevated, accentPrimary]);
 
     const g = svg
       .append("g")
@@ -59,7 +66,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("text-anchor", "end")
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", labelColor)
+        .attr("fill", textMuted)
         .text(label);
     });
 
@@ -70,7 +77,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("text-anchor", "middle")
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", labelColor)
+        .attr("fill", textMuted)
         .text(label);
     });
 
@@ -87,7 +94,17 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           .style("cursor", isDiag ? "default" : "pointer");
 
         if (!isDiag) {
-          cell.on("click", () => onPairSelect(a1, a2));
+          cell
+            .attr("tabindex", 0)
+            .attr("role", "button")
+            .attr("aria-label", `${a1} vs ${a2}: correlation ${val.toFixed(2)}, z-score ${z.toFixed(1)}${isAnomaly ? ", anomaly" : ""}`)
+            .on("click", () => onPairSelect(a1, a2))
+            .on("keydown", (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onPairSelect(a1, a2);
+              }
+            });
         }
 
         cell
@@ -95,9 +112,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           .attr("width", cellSize - 2)
           .attr("height", cellSize - 2)
           .attr("rx", 0)
-          .attr("fill", isDiag ? (theme === "light" ? "#ede8df" : "#10131a") : colorScale(val))
+          .attr("fill", isDiag ? bgElevated : colorScale(val))
           .attr("opacity", isDiag ? 0.7 : 0.9)
-          .attr("stroke", isDiag ? (theme === "light" ? "#d4cfc6" : "#2d2d2d") : "none")
+          .attr("stroke", isDiag ? borderDefault : "none")
           .attr("stroke-width", isDiag ? 1 : 0);
 
         if (!isDiag) {
@@ -108,7 +125,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 1)
-                .attr("stroke", theme === "light" ? "#047857" : "#3b82f6")
+                .attr("stroke", accentPrimary)
                 .attr("stroke-width", 1.5);
             })
             .on("mouseleave", function () {
@@ -117,30 +134,52 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
                 .transition()
                 .duration(150)
                 .attr("opacity", 0.9)
-                .attr("stroke", isAnomaly ? amberColor : "none")
+                .attr("stroke", isAnomaly ? accentAmber : "none")
+                .attr("stroke-width", isAnomaly ? 2 : 0);
+            })
+            .on("focus", function () {
+              d3.select(this)
+                .select("rect")
+                .transition()
+                .duration(150)
+                .attr("opacity", 1)
+                .attr("stroke", accentPrimary)
+                .attr("stroke-width", 2);
+            })
+            .on("blur", function () {
+              d3.select(this)
+                .select("rect")
+                .transition()
+                .duration(150)
+                .attr("opacity", 0.9)
+                .attr("stroke", isAnomaly ? accentAmber : "none")
                 .attr("stroke-width", isAnomaly ? 2 : 0);
             });
         }
 
         if (isAnomaly && !isDiag) {
-          cell
+          const anomalyRect = cell
             .append("rect")
             .attr("width", cellSize - 2)
             .attr("height", cellSize - 2)
             .attr("rx", 0)
             .attr("fill", "none")
-            .attr("stroke", amberColor)
-            .attr("stroke-width", 2)
-            .append("animate")
-            .attr("attributeName", "opacity")
-            .attr("values", "1;0.2;1")
-            .attr("dur", "2s")
-            .attr("repeatCount", "indefinite");
+            .attr("stroke", accentAmber)
+            .attr("stroke-width", 2);
+
+          if (!prefersReducedMotion) {
+            anomalyRect
+              .append("animate")
+              .attr("attributeName", "opacity")
+              .attr("values", "1;0.2;1")
+              .attr("dur", "2s")
+              .attr("repeatCount", "indefinite");
+          }
 
           cell
             .append("polygon")
             .attr("points", `${cellSize - 15},0 ${cellSize - 2},0 ${cellSize - 2},13`)
-            .attr("fill", amberColor);
+            .attr("fill", accentAmber);
         }
 
         if (!isDiag) {
@@ -165,7 +204,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 9)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", isAnomaly ? amberColor : (theme === "light" ? "#6b6b6b" : "#8c909f"))
+            .attr("fill", isAnomaly ? accentAmber : textMuted)
             .text(`z=${z.toFixed(1)}`);
         } else {
           cell
@@ -187,5 +226,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     render();
   }, [render]);
 
-  return <svg ref={svgRef} className="w-full h-auto max-w-2xl mx-auto" />;
+  return (
+    <div className="overflow-x-auto">
+      <svg
+        ref={svgRef}
+        className="w-full h-auto max-w-2xl mx-auto focus-visible:outline-2 focus-visible:outline-accent-primary"
+      />
+    </div>
+  );
 })

@@ -30,11 +30,14 @@ export function ThemeToggle() {
   };
 
   return (
-    <div className="flex items-center border border-border-muted bg-background p-0.5 font-mono text-xs">
+    <div className="flex items-center border border-border-muted bg-background p-0.5 font-mono text-xs" role="radiogroup" aria-label="Theme selector">
       <button
         onClick={() => toggle("dark")}
+        role="radio"
+        aria-checked={theme === "dark"}
+        aria-label="Dark theme"
         className={clsx(
-          "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer",
+          "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "dark"
             ? "bg-accent-primary text-black"
             : "text-muted hover:text-foreground hover:bg-elevated"
@@ -44,8 +47,11 @@ export function ThemeToggle() {
       </button>
       <button
         onClick={() => toggle("light")}
+        role="radio"
+        aria-checked={theme === "light"}
+        aria-label="Light theme"
         className={clsx(
-          "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer",
+          "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "light"
             ? "bg-accent-primary text-black"
             : "text-muted hover:text-foreground hover:bg-elevated"

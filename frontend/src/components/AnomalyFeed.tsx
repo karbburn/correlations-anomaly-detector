@@ -10,7 +10,7 @@ export function AnomalyFeed() {
   const window = useAppStore((s) => s.window);
   const threshold = useAppStore((s) => s.threshold);
   const [offset, setOffset] = useState(0);
-  const { data, isLoading } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
+  const { data, isLoading, isError, error, refetch } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
 
   const exportCsv = () => {
     if (!data?.alerts.length) return;
@@ -51,7 +51,7 @@ export function AnomalyFeed() {
         <button
           onClick={exportCsv}
           disabled={!data?.alerts.length}
-          className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none"
+          className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         >
           EXPORT_CSV
         </button>
@@ -60,6 +60,18 @@ export function AnomalyFeed() {
       {isLoading ? (
         <div className="h-48 flex items-center justify-center">
           <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
+        </div>
+      ) : isError ? (
+        <div className="h-48 flex flex-col items-center justify-center gap-3">
+          <p className="text-xs text-accent-red">
+            {error?.message || "Failed to load anomaly alerts."}
+          </p>
+          <button
+            onClick={() => refetch()}
+            className="px-3 py-1 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+          >
+            RETRY
+          </button>
         </div>
       ) : (
         <>
@@ -113,7 +125,7 @@ export function AnomalyFeed() {
                 {(!data?.alerts || data.alerts.length === 0) && (
                   <tr>
                     <td colSpan={5} className="px-3 py-12 text-center text-dim text-xs font-mono">
-                      // NO_ANOMALIES_DETECTED
+                      {"// NO_ANOMALIES_DETECTED"}
                     </td>
                   </tr>
                 )}
@@ -126,7 +138,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                 disabled={offset === 0}
-                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
+                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               >
                 PREV
               </button>
@@ -136,7 +148,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(offset + PAGE_SIZE)}
                 disabled={!data.has_more}
-                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase"
+                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
               >
                 NEXT
               </button>

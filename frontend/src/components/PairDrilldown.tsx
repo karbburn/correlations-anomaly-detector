@@ -55,7 +55,8 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
         </div>
         <button
           onClick={onClose}
-          className="text-dim hover:text-accent-primary hover:border-accent-primary border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer"
+          aria-label="Close pair drilldown"
+          className="text-dim hover:text-accent-primary hover:border-accent-primary border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
         >
           [CLOSE]
         </button>
@@ -114,7 +115,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
               labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", {
                 day: "numeric", month: "short", year: "numeric",
               })}
-              formatter={(value: any, name: any) => [
+              formatter={(value, name) => [
                 typeof value === "number" ? value.toFixed(4) : "—",
                 name === "correlation" ? "CORRELATION" : name === "zscore" ? "Z-SCORE" : "ANOMALY",
               ]}

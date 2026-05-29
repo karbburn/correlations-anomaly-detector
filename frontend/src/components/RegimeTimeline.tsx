@@ -27,6 +27,10 @@ interface Props {
   regimes: Record<string, string[]>;
 }
 
+function getCssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
   const theme = useAppStore((s) => s.theme);
@@ -34,19 +38,21 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;
 
-    const isDark = theme === "dark";
+    const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
+    const accentRed = getCssVar("--accent-red") || (theme === "light" ? "#dc2626" : "#ef4444");
+    const accentAmber = getCssVar("--accent-amber") || (theme === "light" ? "#b45309" : "#f59e0b");
+    const bgSurface = getCssVar("--bg-surface") || (theme === "light" ? "#e4dfd6" : "#112a20");
+    const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
+    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#2dd4bf");
 
     const activeColors: Record<string, string> = {
-      strong_positive: isDark ? "#10b981" : "#047857",
-      mild_positive: isDark ? "rgba(16, 185, 129, 0.5)" : "#6ee7b7",
-      neutral: isDark ? "#0d1f18" : "#e4dfd6",
-      mild_negative: isDark ? "rgba(239, 68, 68, 0.5)" : "#fca5a5",
-      strong_negative: isDark ? "#ef4444" : "#dc2626",
-      anomaly: isDark ? "#f59e0b" : "#b45309",
+      strong_positive: accentPrimary,
+      mild_positive: theme === "light" ? "#6ee7b7" : "rgba(16, 185, 129, 0.5)",
+      neutral: bgSurface,
+      mild_negative: theme === "light" ? "#fca5a5" : "rgba(239, 68, 68, 0.5)",
+      strong_negative: accentRed,
+      anomaly: accentAmber,
     };
-
-    const labelColor = isDark ? "#2dd4bf" : "#6b6b6b";
-    const dateLabelColor = isDark ? "#5eead4" : "#999999";
 
     const step = Math.max(1, Math.floor(dates.length / 200));
     const sampledDates = dates.filter((_, i) => i % step === 0);
@@ -61,6 +67,8 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
+    svg.attr("role", "img");
+    svg.attr("aria-label", "Regime timeline heatmap showing correlation regime classifications over time for each asset pair.");
 
     const g = svg
       .append("g")
@@ -74,7 +82,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("text-anchor", "end")
         .attr("font-size", 9)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", labelColor)
+        .attr("fill", textMuted)
         .text(PAIR_LABELS[pair] ?? pair.replace("__", "×"));
     });
 
@@ -87,7 +95,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("text-anchor", "middle")
         .attr("font-size", 8)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", dateLabelColor)
+        .attr("fill", textDim)
         .attr("transform", `rotate(-45, ${i * cellW + cellW / 2}, ${pairs.length * cellH + 16})`)
         .text(new Date(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
     });
@@ -143,7 +151,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regim
         .attr("y", 9)
         .attr("font-size", 8)
         .attr("font-family", "var(--font-mono), monospace")
-        .attr("fill", labelColor)
+        .attr("fill", textMuted)
         .text(d.label);
     });
   }, [pairs, dates, regimes, theme]);
