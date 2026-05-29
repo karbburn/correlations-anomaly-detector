@@ -22,7 +22,7 @@ def test_zscore_clipping():
         np.concatenate([np.zeros(350), np.ones(50) * 0.99]),
         index=pd.bdate_range("2022-01-03", periods=n),
     )
-    z = compute_zscore_series(series, hist_window=252)
+    z, _, _ = compute_zscore_series(series, hist_window=252)
     clean = z.dropna()
     assert clean.max() <= 10.0
     assert clean.min() >= -10.0
@@ -32,7 +32,7 @@ def test_zscore_range_random(synthetic_returns):
     """Z-scores on random noise shouldn't be extreme."""
     corrs = compute_all_pair_correlations(synthetic_returns, window=60)
     col = corrs.columns[0]
-    z = compute_zscore_series(corrs[col].dropna(), hist_window=252)
+    z, _, _ = compute_zscore_series(corrs[col].dropna(), hist_window=252)
     clean = z.dropna()
     assert clean.abs().max() < 10.0
 

@@ -35,6 +35,6 @@ def correlated_returns():
     noise = np.random.randn(n) * 0.005
 
     return pd.DataFrame({
-        "A": base,
-        "B": base * 0.8 + noise,
+        "NIFTY50": base,
+        "USDINR": base * 0.8 + noise,
     }, index=dates)

@@ -10,6 +10,8 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 
+from app.services.anomaly_detector import compute_zscore_series
+
 @pytest.fixture
 def mock_warm_store():
     """Pre-populate the in-memory store with synthetic data."""
@@ -29,7 +31,18 @@ def mock_warm_store():
     cache._store["_warm"] = True
 
     for w in [30, 60, 252]:
-        cache._store[f"corr_{w}d"] = compute_all_pair_correlations(returns, window=w)
+        pair_corrs = compute_all_pair_correlations(returns, window=w)
+        cache._store[f"corr_{w}d"] = pair_corrs
+
+        zscore_df = pd.DataFrame(index=pair_corrs.index)
+        for col in pair_corrs.columns:
+            series = pair_corrs[col].dropna()
+            if len(series) >= 60:
+                z, mean, std = compute_zscore_series(series, 252)
+                zscore_df[f"{col}__zscore"] = z
+                zscore_df[f"{col}__mean"] = mean
+                zscore_df[f"{col}__std"] = std
+        cache._store[f"zscore_{w}d"] = zscore_df
 
 
 @pytest.fixture
@@ -86,10 +99,11 @@ def test_anomaly_alerts_pagination(client):
 
 
 def test_regime_history(client):
-    resp = client.get("/api/anomaly/regime-history?window=60&threshold=2.0")
+    resp = client.get("/api/anomaly/regime-history?window=60")
     assert resp.status_code == 200
     data = resp.json()
     assert "pairs" in data
     assert "dates" in data
-    assert "regimes" in data
+    assert "correlations" in data
+    assert "zscores" in data
     assert len(data["pairs"]) == 15  # C(6,2)

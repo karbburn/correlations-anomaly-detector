@@ -39,18 +39,30 @@ def _warm_sync() -> None:
     cache_dir = Path(settings.CACHE_DIR)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    _set_stage("loading_cache")
-
-    loaded_from_cache = _try_load_from_parquet(cache_dir)
+    try:
+        _set_stage("loading_cache")
+        loaded_from_cache = _try_load_from_parquet(cache_dir)
+    except Exception as e:
+        logger.error(f"Failed to load from parquet cache: {e}")
+        loaded_from_cache = False
 
     if loaded_from_cache:
         logger.info("Cache warm from parquet. Refreshing in background...")
         _set_stage("ready")
         with _store_lock:
             _store["_warm"] = True
-        _refresh_cache(cache_dir)
+        try:
+            _refresh_cache(cache_dir)
+        except Exception as e:
+            logger.error(f"Background refresh failed: {e}")
     else:
-        _fetch_and_compute(cache_dir)
+        try:
+            _fetch_and_compute(cache_dir)
+        except Exception as e:
+            logger.error(f"Cache warm failed: {e}. Server starting with empty cache.")
+            _set_stage("error")
+            with _store_lock:
+                _store["_warm"] = True
 
 
 def _try_load_from_parquet(cache_dir: Path) -> bool:
