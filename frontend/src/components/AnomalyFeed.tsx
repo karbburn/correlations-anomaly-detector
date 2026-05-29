@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
 import { useAppStore } from "@/lib/store";
+import { InterpretationCard } from "@/components/InterpretationCard";
 import clsx from "clsx";
 
 const PAGE_SIZE = 25;
@@ -10,7 +11,12 @@ export function AnomalyFeed() {
   const window = useAppStore((s) => s.window);
   const threshold = useAppStore((s) => s.threshold);
   const [offset, setOffset] = useState(0);
+  const [expandedRow, setExpandedRow] = useState<number | null>(null);
   const { data, isLoading, isError, error, refetch } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
+
+  const toggleRow = (idx: number) => {
+    setExpandedRow(expandedRow === idx ? null : idx);
+  };
 
   const exportCsv = () => {
     if (!data?.alerts.length) return;
@@ -48,13 +54,27 @@ export function AnomalyFeed() {
             LOGS: {data?.total_count ?? 0} ALERTS · {window}D_WINDOW · |z| &gt; {threshold}σ
           </p>
         </div>
-        <button
-          onClick={exportCsv}
-          disabled={!data?.alerts.length}
-          className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-        >
-          EXPORT_CSV
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={exportCsv}
+            disabled={!data?.alerts.length}
+            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+          >
+            CSV
+          </button>
+          <span className="text-dim text-[10px]">|</span>
+          <button
+            onClick={async () => {
+              if (!data?.alerts.length) return;
+              const { exportAlertsToExcel } = await import("@/lib/exportExcel");
+              exportAlertsToExcel(data.alerts, window, threshold);
+            }}
+            disabled={!data?.alerts.length}
+            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+          >
+            XLSX
+          </button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -82,6 +102,7 @@ export function AnomalyFeed() {
                   {["Date", "Pair", "Corr", "Z-score", "Regime"].map((h) => (
                     <th
                       key={h}
+                      scope="col"
                       className="px-3 py-2 text-[10px] uppercase font-bold text-muted"
                     >
                       {h}
@@ -91,41 +112,68 @@ export function AnomalyFeed() {
               </thead>
               <tbody>
                 {data?.alerts.map((alert, i) => (
-                  <tr
-                    key={i}
-                    className="hover:bg-elevated transition-colors"
-                  >
-                    <td className="px-3 py-2 text-muted tabular-nums">
-                      {alert.date}
-                    </td>
-                    <td className="px-3 py-2 text-secondary font-semibold">
-                      {alert.asset1}×{alert.asset2}
-                    </td>
-                    <td className="px-3 py-2 tabular-nums text-secondary">
-                      {alert.correlation.toFixed(3)}
-                    </td>
-                    <td className="px-3 py-2 font-bold tabular-nums text-accent-amber">
-                      {alert.zscore > 0 ? "+" : ""}
-                      {alert.zscore.toFixed(2)}σ
-                    </td>
-                    <td className="px-3 py-2 font-bold">
-                      <span
+                  <tr key={i} className="group">
+                    <td colSpan={5} className="p-0">
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={expandedRow === i}
+                        aria-label={`${alert.asset1} vs ${alert.asset2}, z-score ${alert.zscore.toFixed(2)}, ${expandedRow === i ? 'expanded' : 'collapsed'}`}
+                        onClick={() => toggleRow(i)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            toggleRow(i);
+                          }
+                        }}
                         className={clsx(
-                          "px-2 py-0.5 text-[9px] uppercase tracking-wider",
-                          alert.regime === "breakdown"
-                            ? "bg-accent-red/10 text-accent-red"
-                            : "bg-accent-primary/10 text-accent-primary"
+                          "grid grid-cols-5 hover:bg-elevated transition-colors cursor-pointer",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary",
+                          expandedRow === i && "bg-elevated/50"
                         )}
                       >
-                        {alert.regime}
-                      </span>
+                        <span className="px-3 py-2 text-muted tabular-nums">
+                          {alert.date}
+                        </span>
+                        <span className="px-3 py-2 text-secondary font-semibold">
+                          {alert.asset1}×{alert.asset2}
+                        </span>
+                        <span className="px-3 py-2 tabular-nums text-secondary">
+                          {alert.correlation.toFixed(3)}
+                        </span>
+                        <span className="px-3 py-2 font-bold tabular-nums text-accent-amber">
+                          {alert.zscore > 0 ? "+" : ""}
+                          {alert.zscore.toFixed(2)}σ
+                        </span>
+                        <span className="px-3 py-2 font-bold">
+                          <span
+                            className={clsx(
+                              "px-2 py-0.5 text-[9px] uppercase tracking-wider",
+                              alert.regime === "breakdown"
+                                ? "bg-accent-red/10 text-accent-red"
+                                : "bg-accent-primary/10 text-accent-primary"
+                            )}
+                          >
+                            {alert.regime}
+                          </span>
+                        </span>
+                      </div>
+                      {/* Interpretation panel — slides down on click */}
+                      {expandedRow === i && alert.interpretation && (
+                        <div className="px-3 pb-3">
+                          <InterpretationCard interpretation={alert.interpretation} />
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
                 {(!data?.alerts || data.alerts.length === 0) && (
                   <tr>
                     <td colSpan={5} className="px-3 py-12 text-center text-dim text-xs font-mono">
-                      {"// NO_ANOMALIES_DETECTED"}
+                      <p className="mb-2">{"// NO_ANOMALIES_DETECTED"}</p>
+                      <p className="text-[10px] text-muted">
+                        Try lowering the threshold or switching to a shorter window.
+                      </p>
                     </td>
                   </tr>
                 )}

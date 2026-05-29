@@ -17,9 +17,15 @@
   --accent-primary: #047857;
   --accent-primary-hover: #059669;
   --accent-teal: #0f766e;
-  --accent-cyan: #0e7490;
   --accent-amber: #b45309;
   --accent-red: #dc2626;
+
+  /* Typography scale */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
 }
 
 .dark {
@@ -39,7 +45,6 @@
   --accent-primary: #10b981;
   --accent-primary-hover: #34d399;
   --accent-teal: #14b8a6;
-  --accent-cyan: #22d3ee;
   --accent-amber: #f59e0b;
   --accent-red: #ef4444;
 }
@@ -61,7 +66,6 @@
   --color-accent-primary: var(--accent-primary);
   --color-accent-primary-hover: var(--accent-primary-hover);
   --color-accent-teal: var(--accent-teal);
-  --color-accent-cyan: var(--accent-cyan);
   --color-accent-amber: var(--accent-amber);
   --color-accent-red: var(--accent-red);
 }

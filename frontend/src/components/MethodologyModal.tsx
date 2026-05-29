@@ -22,7 +22,8 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
     if (isOpen) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
-      contentRef.current?.focus();
+      const closeBtn = contentRef.current?.querySelector<HTMLElement>("button");
+      closeBtn?.focus();
     }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);

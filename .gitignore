@@ -12,8 +12,8 @@ build/
 
 # Environment
 .env
-.env.local
-.env.production
+.env.*
+backend/.env
 venv/
 .venv/
 

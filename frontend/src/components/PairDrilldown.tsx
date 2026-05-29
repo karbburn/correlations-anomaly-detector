@@ -38,10 +38,10 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
     zscore: data.zscores[i],
   }));
 
-  const gridColor = isDark ? "#1a3a2e" : "#d4cfc6";
-  const tickColor = isDark ? "#2dd4bf" : "#6b6b6b";
-  const tooltipBg = isDark ? "#060d0a" : "#ffffff";
-  const tooltipBorder = isDark ? "#1a3a2e" : "#d4cfc6";
+  const gridColor = getCssVar("--border-default") || (isDark ? "#1a3a2e" : "#d4cfc6");
+  const tickColor = getCssVar("--text-dim") || (isDark ? "#2dd4bf" : "#6b6b6b");
+  const tooltipBg = getCssVar("--bg-primary") || (isDark ? "#060d0a" : "#ffffff");
+  const tooltipBorder = getCssVar("--border-default") || (isDark ? "#1a3a2e" : "#d4cfc6");
   const accentPrimary = getCssVar("--accent-primary") || (isDark ? "#10b981" : "#047857");
   const accentAmber = getCssVar("--accent-amber") || (isDark ? "#f59e0b" : "#b45309");
   const accentRed = getCssVar("--accent-red") || (isDark ? "#ef4444" : "#dc2626");

@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURES: int = 3
     CIRCUIT_BREAKER_COOLDOWN: int = 3600
 
+    RESEND_API_KEY: str = ""
+    ALERT_RECIPIENTS: str = ""  # comma-separated emails
+    ALERT_SCHEDULE_CRON: str = "0 8 * * 1"  # Monday 8 AM
+    DASHBOARD_URL: str = "http://localhost:3000"
+
+    @property
+    def alert_recipients_list(self) -> list[str]:
+        return [r.strip() for r in self.ALERT_RECIPIENTS.split(",") if r.strip()]
+
     @property
     def allowed_origins_list(self) -> List[str]:
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]

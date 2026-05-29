@@ -11,7 +11,8 @@ const ASSETS = [
 
 export function AssetLegend() {
   return (
-    <div className="flex flex-wrap gap-2 font-mono">
+    <div className="flex flex-wrap items-center gap-2 font-mono">
+      <span className="text-[9px] text-dim uppercase tracking-wider mr-1">Assets:</span>
       {ASSETS.map((a) => (
         <div
           key={a.key}

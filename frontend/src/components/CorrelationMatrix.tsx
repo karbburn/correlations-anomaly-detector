@@ -5,6 +5,13 @@ import { ASSETS } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
 
+function getBrightness(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000;
+}
+
 const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
 
 interface Props {
@@ -46,7 +53,6 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const bgElevated = getCssVar("--bg-elevated") || (theme === "light" ? "#ede8df" : "#0d1f18");
     const borderDefault = getCssVar("--border-default") || (theme === "light" ? "#d4cfc6" : "#1a3a2e");
     const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
-    const textPrimary = getCssVar("--text-primary") || (theme === "light" ? "#1a1a1a" : "#ffffff");
     const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#424754");
 
     const colorScale = d3.scaleLinear<string>()
@@ -182,7 +188,9 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
 
         if (!isDiag) {
-          const textColor = Math.abs(val) > 0.6 ? textPrimary : textPrimary;
+          const bgColor = colorScale(val);
+          const brightness = getBrightness(bgColor);
+          const textColor = brightness > 128 ? "#1a1a1a" : "#ffffff";
 
           cell
             .append("text")

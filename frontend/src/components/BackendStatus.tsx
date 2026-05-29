@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { fetchHealth } from "@/lib/api";
 
 type Status = "checking" | "warming" | "ready" | "error";
@@ -7,8 +7,6 @@ type Status = "checking" | "warming" | "ready" | "error";
 export function BackendStatus({ onReady }: { onReady: () => void }) {
   const [status, setStatus] = useState<Status>("checking");
   const [elapsed, setElapsed] = useState(0);
-
-  const stableOnReady = useCallback(() => onReady(), [onReady]);
 
   useEffect(() => {
     const start = Date.now();
@@ -28,7 +26,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
           if (data.startup_complete && data.cache_status?.corr_60d?.fresh) {
             setStatus("ready");
             clearInterval(timer);
-            stableOnReady();
+            onReady();
             return;
           }
           setStatus("warming");
@@ -50,7 +48,8 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [stableOnReady]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (status === "ready") return null;
 
@@ -65,7 +64,13 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
               </svg>
             </div>
             <p className="text-accent-red text-base font-medium">Backend unavailable</p>
-            <p className="text-dim text-sm">Try refreshing the page in a minute.</p>
+            <p className="text-dim text-sm">The backend may be cold-starting or temporarily down.</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              RETRY
+            </button>
           </>
         ) : (
           <>

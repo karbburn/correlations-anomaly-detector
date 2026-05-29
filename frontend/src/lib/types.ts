@@ -18,6 +18,13 @@ export interface PairTimeseriesResponse {
   anomaly_flags: boolean[];
 }
 
+export interface InterpretationResult {
+  headline: string;
+  explanation: string;
+  confidence: string;
+  historical_context: string;
+}
+
 export interface AnomalyAlert {
   date: string;
   asset1: string;
@@ -28,6 +35,7 @@ export interface AnomalyAlert {
   historical_mean: number;
   historical_std: number;
   regime: "breakdown" | "surge";
+  interpretation?: InterpretationResult;
 }
 
 export interface AlertsResponse {
@@ -49,4 +57,19 @@ export interface RegimeHistoryResponse {
   pairs: string[];
   dates: string[];
   regimes: Record<string, string[]>;
+}
+
+export interface SummaryTopMover {
+  pair: string;
+  zscore: number;
+  direction: string;
+  date: string;
+}
+
+export interface SummaryResponse {
+  as_of_date: string;
+  total_anomalies_today: number;
+  total_anomalies_week: number;
+  top_movers: SummaryTopMover[];
+  regime_summary: Record<string, number>;
 }
