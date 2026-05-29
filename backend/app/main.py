@@ -53,17 +53,20 @@ limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Warming cache on startup...")
+    import asyncio
+    asyncio.get_event_loop().create_task(_warm_background())
+    start_scheduler()
+    yield
+    logger.info("Shutting down...")
+
+
+async def _warm_background():
+    logger.info("Warming cache in background...")
     try:
         await warm_cache()
         logger.info("Cache warm. Server ready.")
     except Exception as e:
         logger.error(f"Cache warm failed: {e}. Server starting anyway.")
-
-    start_scheduler()
-    yield
-
-    logger.info("Shutting down...")
 
 
 app = FastAPI(
