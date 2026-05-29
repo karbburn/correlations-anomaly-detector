@@ -5,6 +5,7 @@ Tracks consecutive failures per source and skips after threshold.
 
 import time
 import logging
+import threading
 from functools import wraps
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class CircuitBreaker:
         self.max_failures = max_failures
         self.cooldown_seconds = cooldown_seconds
         self._sources: dict[str, dict] = {}
+        self._lock = threading.Lock()
 
     def _get_source(self, name: str) -> dict:
         if name not in self._sources:
@@ -36,36 +38,39 @@ class CircuitBreaker:
         return self._sources[name]
 
     def allow_request(self, name: str) -> bool:
-        source = self._get_source(name)
-        if source["state"] == CircuitBreakerState.OPEN:
-            elapsed = time.time() - source["last_failure_time"]
-            if elapsed >= self.cooldown_seconds:
-                source["state"] = CircuitBreakerState.HALF_OPEN
-                logger.info(f"Circuit {name}: OPEN -> HALF_OPEN after {elapsed:.0f}s cooldown")
-                return True
-            return False
-        return True
+        with self._lock:
+            source = self._get_source(name)
+            if source["state"] == CircuitBreakerState.OPEN:
+                elapsed = time.time() - source["last_failure_time"]
+                if elapsed >= self.cooldown_seconds:
+                    source["state"] = CircuitBreakerState.HALF_OPEN
+                    logger.info(f"Circuit {name}: OPEN -> HALF_OPEN after {elapsed:.0f}s cooldown")
+                    return True
+                return False
+            return True
 
     def record_success(self, name: str):
-        source = self._get_source(name)
-        if source["state"] == CircuitBreakerState.HALF_OPEN:
-            logger.info(f"Circuit {name}: HALF_OPEN -> CLOSED (success)")
-        source["state"] = CircuitBreakerState.CLOSED
-        source["failures"] = 0
+        with self._lock:
+            source = self._get_source(name)
+            if source["state"] == CircuitBreakerState.HALF_OPEN:
+                logger.info(f"Circuit {name}: HALF_OPEN -> CLOSED (success)")
+            source["state"] = CircuitBreakerState.CLOSED
+            source["failures"] = 0
 
     def record_failure(self, name: str):
-        source = self._get_source(name)
-        source["failures"] += 1
-        source["last_failure_time"] = time.time()
-        if source["failures"] >= self.max_failures:
-            was = source["state"]
-            source["state"] = CircuitBreakerState.OPEN
-            if was != CircuitBreakerState.OPEN:
-                logger.warning(
-                    f"Circuit {name}: CLOSED -> OPEN "
-                    f"({source['failures']} consecutive failures, "
-                    f"cooldown={self.cooldown_seconds}s)"
-                )
+        with self._lock:
+            source = self._get_source(name)
+            source["failures"] += 1
+            source["last_failure_time"] = time.time()
+            if source["failures"] >= self.max_failures:
+                was = source["state"]
+                source["state"] = CircuitBreakerState.OPEN
+                if was != CircuitBreakerState.OPEN:
+                    logger.warning(
+                        f"Circuit {name}: CLOSED -> OPEN "
+                        f"({source['failures']} consecutive failures, "
+                        f"cooldown={self.cooldown_seconds}s)"
+                    )
 
     def get_status(self, name: str) -> dict:
         source = self._get_source(name)

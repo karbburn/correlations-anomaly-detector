@@ -5,6 +5,7 @@ import React from "react";
 interface Props {
   children: React.ReactNode;
   fallback?: React.ReactNode;
+  onRetry?: () => void;
 }
 
 interface State {
@@ -34,7 +35,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {this.state.error?.message || "An unexpected error occurred."}
           </p>
           <button
-            onClick={() => this.setState({ hasError: false, error: null })}
+            onClick={() => {
+              this.props.onRetry?.();
+              this.setState({ hasError: false, error: null });
+            }}
             className="px-3 py-1 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             RETRY

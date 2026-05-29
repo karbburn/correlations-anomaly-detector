@@ -4,6 +4,7 @@ import type {
   AlertsResponse,
   HealthResponse,
   RegimeHistoryResponse,
+  SummaryResponse,
 } from "./types";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -15,12 +16,18 @@ async function apiFetch<T>(path: string, params?: Record<string, string | number
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
     });
   }
-  const res = await fetch(url.toString());
-  if (!res.ok) {
-    const text = await res.text().catch(() => "Unknown error");
-    throw new Error(`API ${res.status}: ${text}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url.toString(), { signal: controller.signal });
+    if (!res.ok) {
+      const text = await res.text().catch(() => "Unknown error");
+      throw new Error(`API ${res.status}: ${text}`);
+    }
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timeoutId);
   }
-  return res.json() as Promise<T>;
 }
 
 export async function fetchHealth(): Promise<HealthResponse> {
@@ -53,9 +60,11 @@ export async function fetchAnomalyAlerts(
   offset: number = 0,
   limit: number = 50,
   start?: string,
+  interpret: boolean = false,
 ): Promise<AlertsResponse> {
   const params: Record<string, string | number> = { window, threshold, offset, limit };
   if (start) params.start = start;
+  if (interpret) params.interpret = "true";
   return apiFetch<AlertsResponse>("/api/anomaly/alerts", params);
 }
 
@@ -64,4 +73,8 @@ export async function fetchRegimeHistory(
   threshold: number,
 ): Promise<RegimeHistoryResponse> {
   return apiFetch<RegimeHistoryResponse>("/api/anomaly/regime-history", { window, threshold });
+}
+
+export async function fetchSummary(): Promise<SummaryResponse> {
+  return apiFetch<SummaryResponse>("/api/summary");
 }

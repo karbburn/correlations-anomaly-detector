@@ -2,6 +2,7 @@
 import { useEffect, useRef, memo } from "react";
 import * as d3 from "d3";
 import { useAppStore } from "@/lib/store";
+import { getCssVar } from "@/lib/css";
 
 const PAIR_LABELS: Record<string, string> = {
   NIFTY50__USDINR: "Nifty×USD",
@@ -25,10 +26,6 @@ interface Props {
   pairs: string[];
   dates: string[];
   regimes: Record<string, string[]>;
-}
-
-function getCssVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, regimes }: Props) {

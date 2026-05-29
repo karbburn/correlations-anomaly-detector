@@ -18,7 +18,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from app.config import get_settings
 from app.scheduler import start_scheduler
 from app.services.cache import warm_cache
-from app.routers import health, correlation, anomaly
+from app.routers import health, correlation, anomaly, summary
 
 settings = get_settings()
 
@@ -68,7 +68,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Cross-Asset Correlations Anomaly Detector API",
-    version="2.0.0",
+    version="3.0.0",
     docs_url="/docs",
     lifespan=lifespan,
 )
@@ -89,3 +89,4 @@ app.add_middleware(
 app.include_router(health.router,       prefix="/api")
 app.include_router(correlation.router,  prefix="/api/correlation")
 app.include_router(anomaly.router,      prefix="/api/anomaly")
+app.include_router(summary.router,      prefix="/api")

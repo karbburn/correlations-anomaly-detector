@@ -16,15 +16,6 @@ class CorrelationMatrix(BaseModel):
     anomaly_flags: List[List[bool]]
 
 
-class PairTimeseries(BaseModel):
-    pair: List[str]
-    window: int
-    dates: List[date]
-    correlations: List[float]
-    zscores: List[float]
-    anomaly_flags: List[bool]
-
-
 class AnomalyAlert(BaseModel):
     date: date
     asset1: str
@@ -35,6 +26,14 @@ class AnomalyAlert(BaseModel):
     historical_mean: float
     historical_std: float
     regime: str  # "breakdown" | "surge"
+    interpretation: Optional["InterpretationModel"] = None
+
+
+class InterpretationModel(BaseModel):
+    headline: str
+    explanation: str
+    confidence: str  # "high" | "medium" | "low"
+    historical_context: str
 
 
 class AlertsResponse(BaseModel):

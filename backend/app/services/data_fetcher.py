@@ -117,12 +117,12 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
 
 @with_circuit_breaker("yfinance")
 @retry(
-    stop=stop_after_attempt(3),
+    stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
     wait=wait_exponential(multiplier=2, min=2, max=10),
     retry=retry_if_exception_type(DataUnavailableError),
     reraise=True,
     before_sleep=lambda retry_state: logger.warning(
-        f"yfinance retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+        f"yfinance retry {retry_state.attempt_number}/{settings.RETRY_MAX_ATTEMPTS} after {retry_state.outcome.exception()}"
     ),
 )
 def _fetch_yfinance_with_circuit(start: str, end: str) -> pd.DataFrame:
@@ -167,12 +167,12 @@ def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
 
 
 @retry(
-    stop=stop_after_attempt(3),
+    stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
     wait=wait_exponential(multiplier=2, min=2, max=10),
     reraise=True,
     retry=retry_if_exception_type(DataUnavailableError),
     before_sleep=lambda retry_state: logger.warning(
-        f"FBIL retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+        f"FBIL retry {retry_state.attempt_number}/{settings.RETRY_MAX_ATTEMPTS} after {retry_state.outcome.exception()}"
     ),
 )
 def fetch_fbil_gsec(start: str) -> pd.Series:
@@ -240,12 +240,12 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
 
 
 @retry(
-    stop=stop_after_attempt(3),
+    stop=stop_after_attempt(settings.RETRY_MAX_ATTEMPTS),
     wait=wait_exponential(multiplier=2, min=2, max=10),
     reraise=True,
     retry=retry_if_exception_type(DataUnavailableError),
     before_sleep=lambda retry_state: logger.warning(
-        f"NSE retry {retry_state.attempt_number}/3 after {retry_state.outcome.exception()}"
+        f"NSE retry {retry_state.attempt_number}/{settings.RETRY_MAX_ATTEMPTS} after {retry_state.outcome.exception()}"
     ),
 )
 def fetch_nse_fii(start: str) -> pd.Series:

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Query, Response, HTTPException
 from app.services.cache import get_pair_corrs, get_returns, is_cache_warm
 from app.services.correlation_engine import pair_corr_to_matrix, ASSETS
 from app.services.anomaly_detector import compute_zscore_series
-from app.models.schemas import CorrelationMatrix, PairTimeseries
+from app.models.schemas import CorrelationMatrix
 from app.config import get_settings
 
 router = APIRouter()
@@ -43,7 +43,10 @@ async def correlation_matrix(
         raise HTTPException(503, f"Correlation data for {window}d not available")
 
     if date_str:
-        target = pd.Timestamp(date_str)
+        try:
+            target = pd.Timestamp(date_str)
+        except (ValueError, TypeError):
+            raise HTTPException(400, f"Invalid date format: {date_str}. Use YYYY-MM-DD.")
         if target not in pair_corrs.index:
             raise HTTPException(404, f"No data for date {date_str}")
         row = pair_corrs.loc[target]

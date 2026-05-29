@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAppStore } from "@/lib/store";
+import { getCssVar } from "@/lib/css";
 
 interface PairData {
   dates: string[];
@@ -41,6 +42,9 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
   const tickColor = isDark ? "#2dd4bf" : "#6b6b6b";
   const tooltipBg = isDark ? "#060d0a" : "#ffffff";
   const tooltipBorder = isDark ? "#1a3a2e" : "#d4cfc6";
+  const accentPrimary = getCssVar("--accent-primary") || (isDark ? "#10b981" : "#047857");
+  const accentAmber = getCssVar("--accent-amber") || (isDark ? "#f59e0b" : "#b45309");
+  const accentRed = getCssVar("--accent-red") || (isDark ? "#ef4444" : "#dc2626");
 
   return (
     <div className="bg-card p-5 rounded-none font-mono">
@@ -101,8 +105,8 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
               }}
             />
             <ReferenceLine yAxisId="corr" y={0} stroke={gridColor} strokeWidth={1} />
-            <ReferenceLine yAxisId="z" y={threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
-            <ReferenceLine yAxisId="z" y={-threshold} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
+            <ReferenceLine yAxisId="z" y={threshold} stroke={accentRed} strokeDasharray="4 4" strokeOpacity={0.5} />
+            <ReferenceLine yAxisId="z" y={-threshold} stroke={accentRed} strokeDasharray="4 4" strokeOpacity={0.5} />
 
             <Tooltip
               contentStyle={{
@@ -127,7 +131,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
             <Line
               yAxisId="corr"
               dataKey="correlation"
-              stroke="#10b981"
+              stroke={accentPrimary}
               strokeWidth={2}
               dot={false}
               name="correlation"
@@ -136,7 +140,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
             <Line
               yAxisId="z"
               dataKey="zscore"
-              stroke="#f59e0b"
+              stroke={accentAmber}
               strokeWidth={1}
               strokeDasharray="3 3"
               dot={false}

@@ -3,6 +3,7 @@ import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
 import { ASSETS } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
+import { getCssVar } from "@/lib/css";
 
 const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
 
@@ -11,10 +12,6 @@ interface Props {
   zscoreMatrix: number[][];
   threshold: number;
   onPairSelect: (a1: string, a2: string) => void;
-}
-
-function getCssVar(name: string): string {
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 }
 
 export const CorrelationMatrix = memo(function CorrelationMatrix({
@@ -41,7 +38,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
     svg.attr("role", "grid");
-    svg.attr("aria-label", "Correlation matrix heatmap. Use arrow keys to navigate cells, Enter to select a pair.");
+    svg.attr("aria-label", "Correlation matrix heatmap. Press Tab to navigate cells, Enter to select a pair.");
 
     const accentRed = getCssVar("--accent-red") || (theme === "light" ? "#dc2626" : "#ef4444");
     const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
@@ -49,6 +46,8 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const bgElevated = getCssVar("--bg-elevated") || (theme === "light" ? "#ede8df" : "#0d1f18");
     const borderDefault = getCssVar("--border-default") || (theme === "light" ? "#d4cfc6" : "#1a3a2e");
     const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
+    const textPrimary = getCssVar("--text-primary") || (theme === "light" ? "#1a1a1a" : "#ffffff");
+    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#424754");
 
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
@@ -183,7 +182,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
 
         if (!isDiag) {
-          const textColor = Math.abs(val) > 0.6 ? "#ffffff" : (theme === "light" ? "#1a1a1a" : "#ffffff");
+          const textColor = Math.abs(val) > 0.6 ? textPrimary : textPrimary;
 
           cell
             .append("text")
@@ -215,7 +214,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("text-anchor", "middle")
             .attr("font-size", 11)
             .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", theme === "light" ? "#999999" : "#424754")
+            .attr("fill", textDim)
             .text("1.00");
         }
       });
