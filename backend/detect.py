@@ -58,7 +58,7 @@ def detect(window, threshold, start, output, matrix, pair):
                 return
 
         series = corrs[col]
-        z = compute_zscore_series(series)
+        z, _, _ = compute_zscore_series(series)
         out = pd.DataFrame({"correlation": series, "zscore": z}).dropna().tail(30)
         click.echo(f"\nPair: {a1} vs {a2}  (window={window}d)\n")
         click.echo(out.round(4).to_string())

@@ -2,8 +2,11 @@
 Anomaly detector — z-score based detection with clipping and regime labels.
 """
 
+import logging
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def compute_zscore_series(
@@ -27,7 +30,11 @@ def detect_anomalies(
     alerts = []
 
     for col in all_pair_corrs.columns:
-        asset1, asset2 = col.split("__")
+        parts = col.split("__", 1)
+        if len(parts) != 2:
+            logger.warning(f"Skipping unexpected column format: {col}")
+            continue
+        asset1, asset2 = parts
         corr = all_pair_corrs[col].dropna()
 
         if len(corr) < hist_window:

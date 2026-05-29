@@ -138,7 +138,10 @@ def _yfinance_fallback(start: str) -> pd.DataFrame:
         logger.warning("Serving stale price cache")
         from app.services.cache import set_staleness
         set_staleness("prices_stale", True)
-        return pd.read_parquet(cache_path)
+        try:
+            return pd.read_parquet(cache_path)
+        except Exception as cache_err:
+            logger.warning(f"Stale price cache corrupted ({cache_err}) — falling through to synthetic")
 
     logger.error("No price cache — generating synthetic prices")
     end = datetime.date.today().strftime("%Y-%m-%d")
@@ -216,11 +219,14 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
         logger.warning("Serving stale G-Sec cache (FBIL was down)")
         from app.services.cache import set_staleness
         set_staleness("gsec_stale", True)
-        df = pd.read_parquet(cache_path)
-        series = df.squeeze()
-        series.name = "GSEC10Y"
-        result = _ensure_unique_index(series[series.index >= start], "GSEC10Y (cached)")
-        return result
+        try:
+            df = pd.read_parquet(cache_path)
+            series = df.squeeze()
+            series.name = "GSEC10Y"
+            result = _ensure_unique_index(series[series.index >= start], "GSEC10Y (cached)")
+            return result
+        except Exception as cache_err:
+            logger.warning(f"Stale G-Sec cache corrupted ({cache_err}) — falling through to synthetic")
 
     logger.error("No G-Sec cache available — generating synthetic data")
     from app.services.cache import set_staleness
@@ -298,11 +304,14 @@ def _fallback_fii(start: str) -> pd.Series:
         logger.warning("Serving stale FII cache")
         from app.services.cache import set_staleness
         set_staleness("fii_stale", True)
-        df = pd.read_parquet(cache_path)
-        series = df.squeeze()
-        series.name = "FII_FLOW"
-        result = _ensure_unique_index(series[series.index >= start], "FII_FLOW (cached)")
-        return result
+        try:
+            df = pd.read_parquet(cache_path)
+            series = df.squeeze()
+            series.name = "FII_FLOW"
+            result = _ensure_unique_index(series[series.index >= start], "FII_FLOW (cached)")
+            return result
+        except Exception as cache_err:
+            logger.warning(f"Stale FII cache corrupted ({cache_err}) — falling through to synthetic")
 
     logger.error("No FII cache — generating synthetic data")
     from app.services.cache import set_staleness

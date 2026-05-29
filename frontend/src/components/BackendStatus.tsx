@@ -24,6 +24,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         if (cancelled) return;
         try {
           const data = await fetchHealth();
+          if (cancelled) return;
           if (data.startup_complete && data.cache_status?.corr_60d?.fresh) {
             setStatus("ready");
             clearInterval(timer);
@@ -32,8 +33,10 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
           }
           setStatus("warming");
         } catch {
+          if (cancelled) return;
           setStatus(i === 0 ? "checking" : "warming");
         }
+        if (cancelled) return;
         await new Promise((r) => setTimeout(r, 3000));
       }
       if (!cancelled) {

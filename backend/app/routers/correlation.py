@@ -6,6 +6,7 @@ because correlation data only changes when the cache refreshes (hourly).
 """
 
 import numpy as np
+import pandas as pd
 from datetime import date
 from fastapi import APIRouter, Query, Response, HTTPException
 
