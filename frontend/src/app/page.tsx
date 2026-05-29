@@ -245,7 +245,7 @@ function Dashboard() {
           <footer className="border-t border-border-muted mt-12 bg-background">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-dim">
               <p>
-                Cross-Asset Correlations Anomaly Detector v3.0
+                Cross-Asset Correlations Anomaly Detector
               </p>
               <a
                 href="https://www.linkedin.com/in/sourabh-pradhan07/"

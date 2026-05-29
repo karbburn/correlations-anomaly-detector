@@ -72,7 +72,7 @@ def _build_digest_html(alerts_df, dashboard_url: str) -> str:
         </a>
 
         <p style="font-size:9px;color:#555;margin-top:20px;">
-            Cross-Asset Correlations Anomaly Detector v3.0 · Automated weekly digest
+            Cross-Asset Correlations Anomaly Detector · Automated weekly digest
         </p>
     </div>
     """

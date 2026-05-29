@@ -68,7 +68,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Cross-Asset Correlations Anomaly Detector API",
-    version="3.0.0",
     docs_url="/docs",
     lifespan=lifespan,
 )
