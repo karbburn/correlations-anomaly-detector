@@ -6,6 +6,20 @@
 import * as XLSX from "xlsx";
 import type { AnomalyAlert, CorrelationMatrixResponse, PairTimeseriesResponse } from "./types";
 
+function alertsToRows(alerts: AnomalyAlert[]) {
+  return alerts.map((a) => ({
+    Date: a.date,
+    Asset1: a.asset1,
+    Asset2: a.asset2,
+    Correlation: a.correlation,
+    "Z-Score": a.zscore,
+    "Historical Mean": a.historical_mean,
+    "Historical Std": a.historical_std,
+    Regime: a.regime,
+    Interpretation: a.interpretation?.headline ?? "",
+  }));
+}
+
 /**
  * Export anomaly alerts to a single-sheet Excel file.
  */
@@ -17,17 +31,7 @@ export function exportAlertsToExcel(
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Anomaly Alerts
-  const alertRows = alerts.map((a) => ({
-    Date: a.date,
-    Asset1: a.asset1,
-    Asset2: a.asset2,
-    Correlation: a.correlation,
-    "Z-Score": a.zscore,
-    "Historical Mean": a.historical_mean,
-    "Historical Std": a.historical_std,
-    Regime: a.regime,
-    Interpretation: a.interpretation?.headline ?? "",
-  }));
+  const alertRows = alertsToRows(alerts);
   const ws = XLSX.utils.json_to_sheet(alertRows);
 
   // Auto-size columns
@@ -58,17 +62,7 @@ export function exportFullWorkbook(
   const wb = XLSX.utils.book_new();
 
   // Sheet 1: Anomaly Alerts
-  const alertRows = alerts.map((a) => ({
-    Date: a.date,
-    Asset1: a.asset1,
-    Asset2: a.asset2,
-    Correlation: a.correlation,
-    "Z-Score": a.zscore,
-    "Historical Mean": a.historical_mean,
-    "Historical Std": a.historical_std,
-    Regime: a.regime,
-    Interpretation: a.interpretation?.headline ?? "",
-  }));
+  const alertRows = alertsToRows(alerts);
   const wsAlerts = XLSX.utils.json_to_sheet(alertRows);
   XLSX.utils.book_append_sheet(wb, wsAlerts, "Anomaly Alerts");
 
