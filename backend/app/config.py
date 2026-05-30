@@ -10,7 +10,7 @@ ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"]
 
 
 class Settings(BaseSettings):
-    HOST: str = "0.0.0.0"
+    HOST: str = "127.0.0.1"
     PORT: int = 8000
 
     ALLOWED_ORIGINS: str = "http://localhost:3000"
