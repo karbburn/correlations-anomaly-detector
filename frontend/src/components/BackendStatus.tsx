@@ -23,10 +23,13 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         try {
           const data = await fetchHealth();
           if (cancelled) return;
-          setStatus("ready");
-          clearInterval(timer);
-          onReady();
-          return;
+          if (data.startup_complete) {
+            setStatus("ready");
+            clearInterval(timer);
+            onReady();
+            return;
+          }
+          setStatus(i === 0 ? "checking" : "warming");
         } catch {
           if (cancelled) return;
           setStatus(i === 0 ? "checking" : "warming");

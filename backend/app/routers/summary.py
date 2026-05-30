@@ -23,8 +23,18 @@ async def dashboard_summary(response: Response):
     Return a lightweight summary from cached data.
     Zero recomputation — reads directly from the in-memory store.
     """
-    alerts_df = get_default_alerts() or pd.DataFrame()
-    pair_corrs = get_pair_corrs(settings.DEFAULT_WINDOW) or pd.DataFrame()
+    required_alert_cols = {"date", "asset1", "asset2", "zscore", "regime"}
+    alerts_df = get_default_alerts()
+    if alerts_df is None:
+        alerts_df = pd.DataFrame(columns=sorted(required_alert_cols))
+    else:
+        for col in required_alert_cols:
+            if col not in alerts_df.columns:
+                alerts_df[col] = pd.Series(dtype="object")
+
+    pair_corrs = get_pair_corrs(settings.DEFAULT_WINDOW)
+    if pair_corrs is None:
+        pair_corrs = pd.DataFrame()
 
     today = str(date.today())
 
