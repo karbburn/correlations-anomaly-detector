@@ -53,7 +53,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const bgElevated = getCssVar("--bg-elevated") || (theme === "light" ? "#ede8df" : "#0d1f18");
     const borderDefault = getCssVar("--border-default") || (theme === "light" ? "#d4cfc6" : "#1a3a2e");
     const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
-    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#424754");
+    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#2dd4bf");
 
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
