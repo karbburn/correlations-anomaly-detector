@@ -42,9 +42,11 @@ def _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold):
         for date, z_val in flagged.items():
             if np.isnan(z_val) or np.isinf(z_val):
                 continue
-            corr_val = pair_corrs[col].get(date, 0.0) if date in pair_corrs.index else 0.0
-            mean_val = zscore_df[mean_col].get(date, 0.0) if date in zscore_df.index else 0.0
-            std_val = zscore_df[std_col].get(date, 0.0) if date in zscore_df.index else 0.0
+            if date not in pair_corrs.index:
+                continue
+            corr_val = pair_corrs[col].loc[date]
+            mean_val = zscore_df[mean_col].loc[date]
+            std_val = zscore_df[std_col].loc[date]
 
             alerts.append({
                 "date": str(date.date()) if hasattr(date, "date") else str(date),
@@ -53,18 +55,16 @@ def _alerts_from_cached_zscores(pair_corrs, zscore_df, threshold):
                 "correlation": round(float(corr_val), 4),
                 "zscore": round(float(z_val), 4),
                 "historical_mean": round(float(mean_val), 4),
-                "historical_std": round(float(std_val), 4) if not np.isnan(std_val) else 0.0,
+                "historical_std": round(float(std_val), 4) if not np.isnan(std_val) else None,
                 "regime": "breakdown" if z_val < 0 else "surge",
             })
 
     if not alerts:
-        import pandas as pd
         return pd.DataFrame(columns=[
             "date", "asset1", "asset2", "correlation",
             "zscore", "historical_mean", "historical_std", "regime",
         ])
 
-    import pandas as pd
     return (
         pd.DataFrame(alerts)
         .sort_values("date", ascending=False)
