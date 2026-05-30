@@ -207,8 +207,8 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
               {[
                 ["NIFTY50", "yfinance (^NSEI)", "log-returns"],
                 ["USDINR", "yfinance (USDINR=X)", "log-returns"],
-                ["GOLD", "yfinance (GC=F)", "log-returns"],
-                ["CRUDE", "yfinance (CL=F)", "log-returns"],
+                ["GOLD", "yfinance (GOLDBEES.NS)", "log-returns"],
+                ["CRUDE", "yfinance (BZ=F)", "log-returns"],
                 ["GSEC10Y", "FBIL API", "first-difference"],
                 ["FII_FLOW", "NSE FII/DII API", "z-score of raw flow"],
               ].map(([asset, source, transform]) => (
