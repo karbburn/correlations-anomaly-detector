@@ -56,8 +56,6 @@ export function exportFullWorkbook(
   alerts: AnomalyAlert[],
   matrixData: CorrelationMatrixResponse | null,
   pairData: PairTimeseriesResponse | null,
-  window: number,
-  threshold: number,
 ) {
   const wb = XLSX.utils.book_new();
 

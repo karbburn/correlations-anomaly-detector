@@ -194,7 +194,7 @@ function Dashboard() {
 
               {/* Anomaly Feed */}
               <ErrorBoundary>
-                <AnomalyFeed />
+                <AnomalyFeed key={`${window}-${threshold}`} />
               </ErrorBoundary>
             </div>
 
