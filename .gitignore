@@ -46,6 +46,10 @@ Skills/
 # Design artifacts
 design-system/
 
+# Agent instructions
+Agents.md
+AGENTS.md
+
 # Review artifacts
 REVIEW.md
 REVIEW-FIX.md
