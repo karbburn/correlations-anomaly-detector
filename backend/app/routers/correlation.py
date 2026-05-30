@@ -56,10 +56,10 @@ async def correlation_matrix(
         if target not in pair_corrs.index:
             raise HTTPException(404, f"No data for date {date_str}")
         row = pair_corrs.loc[target]
-        as_of = date_str
+        as_of = pd.Timestamp(date_str).date()
     else:
         row = pair_corrs.dropna(how="all").iloc[-1]
-        as_of = str(row.name.date()) if hasattr(row.name, "date") else str(row.name)
+        as_of = row.name.date() if hasattr(row.name, "date") else row.name
 
     returns = get_returns()
     assets = [a for a in ASSETS if returns is not None and a in returns.columns]
