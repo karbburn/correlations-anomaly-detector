@@ -229,6 +229,7 @@ def _find_historical_precedent(
     pair_corr_series: Optional[pd.Series],
     current_zscore: float,
     threshold: float,
+    zscore_series: Optional[pd.Series] = None,
 ) -> str:
     """
     Scan the cached pair correlation z-score history to find the last
@@ -237,9 +238,11 @@ def _find_historical_precedent(
     if pair_corr_series is None or pair_corr_series.empty:
         return "Insufficient historical data for precedent analysis."
 
-    from app.services.anomaly_detector import compute_zscore_series
-
-    z_series, _, _ = compute_zscore_series(pair_corr_series, hist_window=252)
+    if zscore_series is not None:
+        z_series = zscore_series
+    else:
+        from app.services.anomaly_detector import compute_zscore_series
+        z_series, _, _ = compute_zscore_series(pair_corr_series, hist_window=252)
     z_series = z_series.dropna()
 
     if z_series.empty:
@@ -272,6 +275,7 @@ def interpret_anomaly(
     correlation: float,
     regime: str,
     pair_corr_series: Optional[pd.Series] = None,
+    zscore_series: Optional[pd.Series] = None,
     threshold: float = 2.0,
 ) -> InterpretationResult:
     """
@@ -307,7 +311,7 @@ def interpret_anomaly(
     confidence = _get_confidence(zscore)
 
     historical_context = _find_historical_precedent(
-        pair_corr_series, zscore, threshold
+        pair_corr_series, zscore, threshold, zscore_series=zscore_series
     )
 
     return InterpretationResult(

@@ -123,17 +123,25 @@ async def anomaly_alerts(
 
     # Enrich with interpretations if requested
     if interpret and alert_dicts:
+        from app.services.anomaly_detector import compute_zscore_series
+
         pair_corrs_data = get_pair_corrs(window)
+        _zscore_cache: dict[str, pd.Series] = {}
         for alert_dict in alert_dicts:
             a1, a2 = alert_dict["asset1"], alert_dict["asset2"]
             # Get pair correlation series for historical context
             pair_series = None
+            zscore_series = None
             if pair_corrs_data is not None:
                 col = f"{a1}__{a2}"
                 if col not in pair_corrs_data.columns:
                     col = f"{a2}__{a1}"
                 if col in pair_corrs_data.columns:
                     pair_series = pair_corrs_data[col].dropna()
+                    if col not in _zscore_cache:
+                        z, _, _ = compute_zscore_series(pair_series, settings.HIST_WINDOW)
+                        _zscore_cache[col] = z
+                    zscore_series = _zscore_cache[col]
 
             result = interpret_anomaly(
                 asset1=a1,
@@ -142,6 +150,7 @@ async def anomaly_alerts(
                 correlation=alert_dict["correlation"],
                 regime=alert_dict["regime"],
                 pair_corr_series=pair_series,
+                zscore_series=zscore_series,
                 threshold=threshold,
             )
             alert_dict["interpretation"] = {
