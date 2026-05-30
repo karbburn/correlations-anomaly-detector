@@ -339,9 +339,9 @@ python detect.py --window 252 --threshold 2.5 --output alerts.csv
 
 1. Import the repository in [Vercel](https://vercel.com).
 2. Set the **Root Directory** to `frontend`.
-3. Add the environment variable:
-   - `NEXT_PUBLIC_API_URL` — your Render backend URL (e.g., `https://your-app.onrender.com`)
-4. Deploy.
+3. Deploy.
+
+> The frontend proxies `/api/*` to the Render backend through `next.config.ts`. `NEXT_PUBLIC_API_URL` only overrides the proxy target for local development or a different backend host.
 
 > **Important:** After the frontend is deployed, update the backend `ALLOWED_ORIGINS` on Render to include the Vercel URL.
 
@@ -364,9 +364,9 @@ Backend configuration is managed via `backend/.env` (copy from `.env.example`):
 
 Frontend environment variable:
 
-| Variable              | Required | Description                                      |
-|-----------------------|----------|--------------------------------------------------|
-| `NEXT_PUBLIC_API_URL` | Yes      | Backend API base URL (e.g., `http://localhost:8000`) |
+| Variable              | Required | Description                                                         |
+|-----------------------|----------|---------------------------------------------------------------------|
+| `NEXT_PUBLIC_API_URL` | No       | Optional backend API base URL override for the Vercel rewrite proxy |
 
 ---
 

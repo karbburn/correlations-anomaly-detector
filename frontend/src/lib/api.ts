@@ -7,10 +7,8 @@ import type {
   SummaryResponse,
 } from "./types";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 async function apiFetch<T>(path: string, params?: Record<string, string | number>): Promise<T> {
-  const url = new URL(path, BASE_URL);
+  const url = new URL(path, window.location.origin);
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
       if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
