@@ -2,9 +2,17 @@
 Shared test fixtures.
 """
 
+from pathlib import Path
+import sys
+
 import pytest
 import numpy as np
 import pandas as pd
+
+
+BACKEND_ROOT = Path(__file__).resolve().parents[1]
+if str(BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(BACKEND_ROOT))
 
 
 @pytest.fixture
