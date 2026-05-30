@@ -135,7 +135,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
               strokeWidth={2}
               dot={false}
               name="correlation"
-              connectNulls
+              connectNulls={false}
             />
             <Line
               yAxisId="z"
@@ -145,7 +145,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
               strokeDasharray="3 3"
               dot={false}
               name="zscore"
-              connectNulls
+              connectNulls={false}
             />
           </ComposedChart>
         </ResponsiveContainer>
