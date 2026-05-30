@@ -5,6 +5,7 @@ waiting for a request to trigger re-computation.
 Also runs optional weekly anomaly digest emails if Resend is configured.
 """
 
+import asyncio
 import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -63,7 +64,6 @@ async def _refresh() -> None:
 
 async def _send_digest() -> None:
     try:
-        import asyncio
         from app.services.email_service import send_anomaly_digest
         logger.info("Sending weekly anomaly digest...")
         loop = asyncio.get_running_loop()
