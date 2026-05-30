@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
 import { useAppStore } from "@/lib/store";
 import { InterpretationCard } from "@/components/InterpretationCard";
@@ -12,6 +12,11 @@ export function AnomalyFeed() {
   const threshold = useAppStore((s) => s.threshold);
   const [offset, setOffset] = useState(0);
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
+
+  // Reset pagination when filtering params change
+  useEffect(() => {
+    setOffset(0);
+  }, [window, threshold]);
   const { data, isLoading, isError, error, refetch } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
 
   const toggleRow = (idx: number) => {
