@@ -9,7 +9,7 @@
   --text-primary: #1a1a1a;
   --text-secondary: #3d3d3d;
   --text-muted: #6b6b6b;
-  --text-dim: #999999;
+  --text-dim: #737373;
 
   --border-default: #d4cfc6;
   --border-dim: #e4dfd6;
@@ -17,8 +17,8 @@
   --accent-primary: #047857;
   --accent-primary-hover: #059669;
   --accent-teal: #0f766e;
-  --accent-amber: #b45309;
-  --accent-red: #dc2626;
+  --accent-amber: #92400e;
+  --accent-red: #b91c1c;
 
   /* Typography scale */
   --text-xs: 0.75rem;

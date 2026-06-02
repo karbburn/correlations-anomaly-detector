@@ -34,7 +34,7 @@ export function WindowSelector() {
             className={clsx(
               "px-3 py-1 text-[10px] font-semibold transition-all duration-150 uppercase cursor-pointer rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
               w === window
-                ? "bg-accent-primary text-black border-transparent"
+                ? "bg-accent-primary text-white border-transparent"
                 : "text-muted hover:text-foreground border-transparent hover:bg-elevated"
             )}
           >

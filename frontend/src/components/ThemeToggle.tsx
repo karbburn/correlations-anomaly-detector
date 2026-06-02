@@ -39,7 +39,7 @@ export function ThemeToggle() {
         className={clsx(
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "dark"
-            ? "bg-accent-primary text-black"
+            ? "bg-accent-primary text-white"
             : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
@@ -53,7 +53,7 @@ export function ThemeToggle() {
         className={clsx(
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "light"
-            ? "bg-accent-primary text-black"
+            ? "bg-accent-primary text-white"
             : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
