@@ -61,7 +61,8 @@ async def dashboard_summary(response: Response):
     # Regime summary from latest correlation snapshot
     regime_counts = {"anomaly": 0, "strong_positive": 0, "mild_positive": 0,
                      "neutral": 0, "mild_negative": 0, "strong_negative": 0}
-    last_row = pair_corrs.dropna(how="all").iloc[-1] if not pair_corrs.empty else None
+    clean_corrs = pair_corrs.dropna(how="all")
+    last_row = clean_corrs.iloc[-1] if not clean_corrs.empty else None
     if last_row is not None:
         for col, val in last_row.items():
             if np.isnan(val):
@@ -91,7 +92,7 @@ async def dashboard_summary(response: Response):
             else:
                 regime_counts["strong_negative"] += 1
 
-    as_of = str(pair_corrs.dropna(how="all").index[-1].date()) if not pair_corrs.empty else today
+    as_of = str(clean_corrs.index[-1].date()) if not clean_corrs.empty else today
 
     response.headers["Cache-Control"] = CACHE_HEADER
 
