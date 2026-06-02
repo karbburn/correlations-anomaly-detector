@@ -61,6 +61,8 @@ YFINANCE_TIMEOUT = 60
 FBIL_TIMEOUT = 30
 NSE_TIMEOUT = 20
 
+FBIL_MIN_VALID_POINTS = 10
+
 
 def _ensure_unique_index(series: pd.Series, name: str) -> pd.Series:
     """Deduplicate and validate index. Returns series with unique index."""
@@ -391,7 +393,14 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
 
 def _fetch_fbil_safe(start: str) -> pd.Series:
     try:
-        return _fetch_fbil_with_circuit(start)
+        result = _fetch_fbil_with_circuit(start)
+        if result is not None and not result.empty and result.dropna().shape[0] >= FBIL_MIN_VALID_POINTS:
+            return result
+        if result is not None and not result.empty:
+            logger.warning(
+                f"FBIL: only {result.dropna().shape[0]} valid points — falling back to synthetic"
+            )
+        return fetch_rbi_gsec_fallback(start)
     except (CircuitBreakerError, DataUnavailableError) as e:
         logger.warning(f"FBIL unavailable ({e}). Using fallback.")
         return fetch_rbi_gsec_fallback(start)
