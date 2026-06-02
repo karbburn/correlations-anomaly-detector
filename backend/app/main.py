@@ -73,7 +73,7 @@ async def _warm_background():
 
 app = FastAPI(
     title="Cross-Asset Correlations Anomaly Detector API",
-    docs_url="/docs",
+    docs_url="/docs" if settings.APP_ENV != "production" else None,
     lifespan=lifespan,
 )
 
@@ -87,7 +87,6 @@ app.add_middleware(
     allow_origins=settings.allowed_origins_list,
     allow_methods=["GET", "OPTIONS", "HEAD"],
     allow_headers=["*"],
-    allow_credentials=True,
 )
 
 app.include_router(health.router,       prefix="/api")

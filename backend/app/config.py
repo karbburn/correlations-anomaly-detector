@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     HOST: str = "127.0.0.1"
     PORT: int = 8000
 
+    APP_ENV: str = "development"
+
     ALLOWED_ORIGINS: str = "http://localhost:3000"
 
     DATA_START_DATE: str = "2020-01-01"

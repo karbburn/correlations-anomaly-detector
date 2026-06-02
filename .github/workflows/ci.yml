@@ -26,6 +26,9 @@ jobs:
       - name: Lint
         run: ruff check app/ --fix --exit-non-zero-on-fix
 
+      - name: Audit dependencies
+        run: pip install pip-audit && pip-audit --strict
+
       - name: Test
         run: pytest tests/ -v --tb=short
 
@@ -47,3 +50,6 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
