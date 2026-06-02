@@ -36,9 +36,14 @@ async def warm_cache() -> None:
 
 
 def mark_server_started() -> None:
-    """Mark the API as up before warm-cache completes."""
-    with _store_lock:
-        _store["_warm"] = True
+    """DEPRECATED: kept as a no-op for backward compat.
+
+    Warm-readiness is now signaled exclusively by the success path of
+    _warm_sync() flipping _store["_warm"] to True. Calling this from
+    lifespan would short-circuit the readiness signal and cause the
+    frontend to render the dashboard before the cache is actually loaded.
+    """
+    return
 
 
 def _warm_sync() -> None:
