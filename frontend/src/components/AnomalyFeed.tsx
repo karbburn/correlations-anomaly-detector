@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
 import { useInterpretAlert } from "@/hooks/useInterpretAlert";
 import { useAppStore } from "@/lib/store";
@@ -95,12 +95,19 @@ export function AnomalyFeed() {
 
   const { data, isLoading, isError, error, refetch } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
 
-  // Reset pagination to first page when window or threshold changes
-  // (avoiding a full remount so expanded row and other local state survive)
-  useEffect(() => {
+  // Reset pagination and clear the expanded row when window or threshold
+  // changes. We use the React 19 "adjusting state when a prop changes"
+  // pattern instead of a useEffect so we don't trigger cascading renders
+  // and avoid the react-hooks/set-state-in-effect lint rule.
+  // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
+  const [prevWindow, setPrevWindow] = useState(window);
+  const [prevThreshold, setPrevThreshold] = useState(threshold);
+  if (prevWindow !== window || prevThreshold !== threshold) {
+    setPrevWindow(window);
+    setPrevThreshold(threshold);
     setOffset(0);
     setExpandedRow(null);
-  }, [window, threshold]);
+  }
 
   const toggleRow = (idx: number) => {
     setExpandedRow(expandedRow === idx ? null : idx);
