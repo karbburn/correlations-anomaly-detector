@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
 import { useAppStore } from "@/lib/store";
 import { InterpretationCard } from "@/components/InterpretationCard";
@@ -14,6 +14,13 @@ export function AnomalyFeed() {
   const [expandedRow, setExpandedRow] = useState<number | null>(null);
 
   const { data, isLoading, isError, error, refetch } = useAnomalyFeed({ offset, limit: PAGE_SIZE });
+
+  // Reset pagination to first page when window or threshold changes
+  // (avoiding a full remount so expanded row and other local state survive)
+  useEffect(() => {
+    setOffset(0);
+    setExpandedRow(null);
+  }, [window, threshold]);
 
   const toggleRow = (idx: number) => {
     setExpandedRow(expandedRow === idx ? null : idx);
