@@ -6,7 +6,7 @@ import { useAppStore } from "@/lib/store";
 export function useAnomalyFeed({
   offset = 0,
   limit = 25,
-  interpret = true,
+  interpret = false,
 }: {
   offset?: number;
   limit?: number;

@@ -1,11 +1,91 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
+import { useInterpretAlert } from "@/hooks/useInterpretAlert";
 import { useAppStore } from "@/lib/store";
 import { InterpretationCard } from "@/components/InterpretationCard";
 import clsx from "clsx";
+import type { AnomalyAlert } from "@/lib/types";
 
 const PAGE_SIZE = 25;
+
+type AnomalyRowProps = {
+  alert: AnomalyAlert;
+  index: number;
+  pageOffset: number;
+  isExpanded: boolean;
+  onToggle: (idx: number) => void;
+};
+
+/**
+ * Single row in the anomaly feed. Lazily fetches the interpretation only
+ * when the row is expanded, so unexpanded rows cost zero interpretation
+ * work even though they live in the same fetched page.
+ */
+function AnomalyRow({ alert, index, pageOffset, isExpanded, onToggle }: AnomalyRowProps) {
+  const { data: interpretation } = useInterpretAlert(
+    isExpanded ? alert : null,
+    pageOffset + index,
+    isExpanded,
+  );
+
+  return (
+    <tr key={index} className="group">
+      <td colSpan={5} className="p-0">
+        <div
+          role="button"
+          tabIndex={0}
+          aria-expanded={isExpanded}
+          aria-label={`${alert.asset1} vs ${alert.asset2}, z-score ${alert.zscore.toFixed(2)}, ${isExpanded ? 'expanded' : 'collapsed'}`}
+          onClick={() => onToggle(index)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onToggle(index);
+            }
+          }}
+          className={clsx(
+            "grid grid-cols-5 hover:bg-elevated transition-colors cursor-pointer",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary",
+            isExpanded && "bg-elevated/50"
+          )}
+        >
+          <span className="px-3 py-2 text-muted tabular-nums">
+            {alert.date}
+          </span>
+          <span className="px-3 py-2 text-secondary font-semibold">
+            {alert.asset1}×{alert.asset2}
+          </span>
+          <span className="px-3 py-2 tabular-nums text-secondary">
+            {alert.correlation.toFixed(3)}
+          </span>
+          <span className="px-3 py-2 font-bold tabular-nums text-accent-amber">
+            {alert.zscore > 0 ? "+" : ""}
+            {alert.zscore.toFixed(2)}σ
+          </span>
+          <span className="px-3 py-2 font-bold">
+            <span
+              className={clsx(
+                "px-2 py-0.5 text-[9px] uppercase tracking-wider",
+                alert.regime === "breakdown"
+                  ? "bg-accent-red/10 text-accent-red"
+                  : "bg-accent-primary/10 text-accent-primary"
+              )}
+            >
+              {alert.regime}
+            </span>
+          </span>
+        </div>
+        {/* Interpretation panel — only fetched when this row is expanded */}
+        {isExpanded && interpretation && (
+          <div className="px-3 pb-3">
+            <InterpretationCard interpretation={interpretation} />
+          </div>
+        )}
+      </td>
+    </tr>
+  );
+}
 
 export function AnomalyFeed() {
   const window = useAppStore((s) => s.window);
@@ -120,60 +200,14 @@ export function AnomalyFeed() {
               </thead>
               <tbody>
                 {data?.alerts.map((alert, i) => (
-                  <tr key={i} className="group">
-                    <td colSpan={5} className="p-0">
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={expandedRow === i}
-                        aria-label={`${alert.asset1} vs ${alert.asset2}, z-score ${alert.zscore.toFixed(2)}, ${expandedRow === i ? 'expanded' : 'collapsed'}`}
-                        onClick={() => toggleRow(i)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            toggleRow(i);
-                          }
-                        }}
-                        className={clsx(
-                          "grid grid-cols-5 hover:bg-elevated transition-colors cursor-pointer",
-                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary",
-                          expandedRow === i && "bg-elevated/50"
-                        )}
-                      >
-                        <span className="px-3 py-2 text-muted tabular-nums">
-                          {alert.date}
-                        </span>
-                        <span className="px-3 py-2 text-secondary font-semibold">
-                          {alert.asset1}×{alert.asset2}
-                        </span>
-                        <span className="px-3 py-2 tabular-nums text-secondary">
-                          {alert.correlation.toFixed(3)}
-                        </span>
-                        <span className="px-3 py-2 font-bold tabular-nums text-accent-amber">
-                          {alert.zscore > 0 ? "+" : ""}
-                          {alert.zscore.toFixed(2)}σ
-                        </span>
-                        <span className="px-3 py-2 font-bold">
-                          <span
-                            className={clsx(
-                              "px-2 py-0.5 text-[9px] uppercase tracking-wider",
-                              alert.regime === "breakdown"
-                                ? "bg-accent-red/10 text-accent-red"
-                                : "bg-accent-primary/10 text-accent-primary"
-                            )}
-                          >
-                            {alert.regime}
-                          </span>
-                        </span>
-                      </div>
-                      {/* Interpretation panel — slides down on click */}
-                      {expandedRow === i && alert.interpretation && (
-                        <div className="px-3 pb-3">
-                          <InterpretationCard interpretation={alert.interpretation} />
-                        </div>
-                      )}
-                    </td>
-                  </tr>
+                  <AnomalyRow
+                    key={i}
+                    alert={alert}
+                    index={i}
+                    pageOffset={offset}
+                    isExpanded={expandedRow === i}
+                    onToggle={toggleRow}
+                  />
                 ))}
                 {(!data?.alerts || data.alerts.length === 0) && (
                   <tr>
