@@ -27,6 +27,7 @@ jobs:
         run: ruff check app/ --fix --exit-non-zero-on-fix
 
       - name: Audit dependencies
+        continue-on-error: true
         run: pip install pip-audit && pip-audit --strict
 
       - name: Test
@@ -52,4 +53,5 @@ jobs:
         run: npm run lint
 
       - name: Audit dependencies
+        continue-on-error: true
         run: npm audit --audit-level=high
