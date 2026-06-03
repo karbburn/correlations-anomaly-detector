@@ -67,7 +67,7 @@ function Dashboard() {
     });
   }, [window, threshold, selectedPair, setQueryParams]);
 
-  const { data: matrixData, isLoading: matrixLoading, isError: matrixError, error: matrixErr, refetch: refetchMatrix } = useCorrelationMatrix();
+  const { data: matrixData, isLoading: matrixLoading, isError: matrixError, error: matrixErr, refetch: refetchMatrix } = useCorrelationMatrix(ready);
 
   const { data: pairData, isLoading: pairLoading, isError: pairError, error: pairErr } = usePairData(
     selectedPair?.[0] ?? "",

@@ -3,12 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchCorrelationMatrix } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
-export function useCorrelationMatrix(date?: string) {
+export function useCorrelationMatrix(ready: boolean, date?: string) {
   const window = useAppStore((s) => s.window);
 
   return useQuery({
     queryKey: ["correlationMatrix", window, date],
     queryFn: () => fetchCorrelationMatrix(window, date),
+    enabled: ready,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     refetchInterval: (query) => {
