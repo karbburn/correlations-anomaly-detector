@@ -9,6 +9,7 @@ import logging
 from datetime import date, timedelta
 from html import escape
 
+import pandas as pd
 import requests
 
 from app.config import get_settings
@@ -20,7 +21,8 @@ settings = get_settings()
 
 def _build_digest_html(alerts_df, dashboard_url: str) -> str:
     """Build HTML email body from recent alerts."""
-    week_ago = str(date.today() - timedelta(days=7))
+    week_ago = pd.Timestamp.today() - pd.Timedelta(days=7)
+    alerts_df["date"] = pd.to_datetime(alerts_df["date"])
     recent = alerts_df[alerts_df["date"] >= week_ago] if not alerts_df.empty else alerts_df
 
     total = len(recent)
