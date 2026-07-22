@@ -36,15 +36,13 @@ async def dashboard_summary(response: Response):
     if pair_corrs is None:
         pair_corrs = pd.DataFrame()
 
-    today = str(date.today())
-
-    # Count today's anomalies
-    today_alerts = alerts_df[alerts_df["date"] == today] if not alerts_df.empty else alerts_df
+    today_str = str(date.today())
+    today_alerts = alerts_df[pd.to_datetime(alerts_df["date"]) == pd.to_datetime(today_str)] if not alerts_df.empty else alerts_df
     total_today = len(today_alerts)
 
     # Top movers: highest |z-score| from recent alerts (last 7 days)
-    week_ago = str(date.today() - timedelta(days=7))
-    recent = alerts_df[alerts_df["date"] >= week_ago] if not alerts_df.empty else alerts_df
+    week_ago_str = str(date.today() - timedelta(days=7))
+    recent = alerts_df[pd.to_datetime(alerts_df["date"]) >= pd.to_datetime(week_ago_str)] if not alerts_df.empty else alerts_df
     top_movers = []
     if not recent.empty:
         recent_sorted = recent.reindex(
@@ -92,7 +90,7 @@ async def dashboard_summary(response: Response):
             else:
                 regime_counts["strong_negative"] += 1
 
-    as_of = str(clean_corrs.index[-1].date()) if not clean_corrs.empty else today
+    as_of = str(clean_corrs.index[-1].date()) if not clean_corrs.empty else today_str
 
     response.headers["Cache-Control"] = CACHE_HEADER
 

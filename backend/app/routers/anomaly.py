@@ -109,7 +109,7 @@ async def anomaly_alerts(
                 alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
 
     if start and not alerts.empty:
-        alerts = alerts[alerts["date"] >= start]
+        alerts = alerts[pd.to_datetime(alerts["date"]) >= pd.to_datetime(start)]
 
     if not alerts.empty:
         alerts = alerts.copy()
