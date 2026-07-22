@@ -40,23 +40,5 @@ htmlcov/
 # Docker
 *.log
 
-# Skills
-Skills/
-
-# Design artifacts
-design-system/
-
-# Agent instructions
-Agents.md
-AGENTS.md
-
-# Review artifacts
-REVIEW.md
-REVIEW-FIX.md
-UI-SPEC.md
-UI-REVIEW.md
-UI-REVIEW-LIGHT.md
-UI-RESEARCH.md
-
-# Planning artifacts
-.planning/
+# Dev docs, skills, design systems, review/planning artifacts
+assets/
