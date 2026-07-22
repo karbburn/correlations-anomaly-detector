@@ -30,8 +30,12 @@ export function useInterpretAlert(
       offset,
     ],
     queryFn: async () => {
-      const resp = await fetchAnomalyAlerts(window, threshold, offset, 1, undefined, true);
-      return resp.alerts[0]?.interpretation ?? null;
+      const nearbyOffset = Math.max(0, offset - 2);
+      const resp = await fetchAnomalyAlerts(window, threshold, nearbyOffset, 5, undefined, true);
+      const match = resp.alerts.find(
+        (a) => a.date === alert!.date && a.asset1 === alert!.asset1 && a.asset2 === alert!.asset2,
+      );
+      return match?.interpretation ?? null;
     },
     enabled: enabled && alert !== null,
     staleTime: 5 * 60 * 1000,
