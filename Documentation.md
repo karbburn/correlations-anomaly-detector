@@ -1,7 +1,5 @@
 # [CORRSHIFT](https://corrshift.vercel.app)
 
-**Product Documentation — Version 1.0 · Internal**
-
 ---
 
 ## 1. Purpose and Scope
