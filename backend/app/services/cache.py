@@ -138,6 +138,7 @@ def _refresh_cache(cache_dir: Path) -> None:
         _fetch_and_compute(cache_dir)
     except Exception as e:
         logger.error(f"Background refresh failed: {e}")
+        _set_stage("ready")
 
 
 def _fetch_and_compute(cache_dir: Path) -> None:

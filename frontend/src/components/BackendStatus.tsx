@@ -23,13 +23,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
         try {
           const data = await fetchHealth();
           if (cancelled) return;
-          // Only declare ready when the cache is actually loaded.
-          // Backward compat: if the backend doesn't report warming_stage yet,
-          // fall back to startup_complete alone.
-          const stageReady =
-            data.warming_stage === undefined ||
-            data.warming_stage === "ready";
-          if (data.startup_complete && stageReady) {
+          if (data.startup_complete) {
             setStatus("ready");
             clearInterval(timer);
             onReady();
