@@ -1,6 +1,10 @@
-# [CORRSHIFT](https://corrshift.vercel.app)
+# [CorrShift](https://corrshift.vercel.app)
 
-Real-time monitoring of rolling correlations across 6 Indian and global asset classes. Detects anomalous regime shifts using z-score analysis with an interactive D3-powered dashboard.
+**Cross-Asset Correlation Intelligence Platform**
+
+Real-time platform for monitoring rolling cross-asset correlations and detecting anomalous market regime shifts using statistical signal detection.
+
+> **Current configuration:** Indian financial markets (NIFTY50, USD/INR, Gold, Brent, 10Y G-Sec, FII Flows).
 
 ---
 
