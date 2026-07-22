@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 
     RETRY_MAX_ATTEMPTS: int = 3
     CIRCUIT_BREAKER_FAILURES: int = 3
-    CIRCUIT_BREAKER_COOLDOWN: int = 3600
+    CIRCUIT_BREAKER_COOLDOWN: int = 300
 
     RESEND_API_KEY: str = ""
     ALERT_RECIPIENTS: str = ""  # comma-separated emails
