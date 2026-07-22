@@ -40,7 +40,11 @@ def detect(window, threshold, start, output, matrix, pair):
     if matrix:
         click.echo(f"\nCorrelation Matrix (window={window}d, as of {returns.index[-1].date()})\n")
         corrs = compute_all_pair_correlations(returns, window=window)
-        last_row = corrs.dropna(how="all").iloc[-1]
+        clean = corrs.dropna(how="all")
+        if clean.empty:
+            click.echo("No valid correlation data for the requested period.")
+            return
+        last_row = clean.iloc[-1]
         mat = pair_corr_to_matrix(last_row, ASSETS)
         click.echo(mat.round(3).to_string())
         return
