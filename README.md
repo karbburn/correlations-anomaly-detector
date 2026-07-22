@@ -1,4 +1,6 @@
-# Cross-Asset Correlations Anomaly Detector
+# [CORRSHIFT](https://corrshift.vercel.app)
+
+**Version 1.0 · Internal**
 
 Real-time monitoring of rolling correlations across 6 Indian and global asset classes. Detects anomalous regime shifts using z-score analysis with an interactive D3-powered dashboard.
 
