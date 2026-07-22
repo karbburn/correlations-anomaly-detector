@@ -11,9 +11,8 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter, Query, Response, HTTPException
 
-from app.services.cache import get_pair_corrs, get_returns
+from app.services.cache import get_pair_corrs, get_returns, get_pair_zscores
 from app.services.correlation_engine import pair_corr_to_matrix, ASSETS
-from app.services.anomaly_detector import compute_zscore_series
 from app.models.schemas import CorrelationMatrix
 from app.config import get_settings
 
@@ -70,21 +69,23 @@ async def correlation_matrix(
     anomaly_flags_df = corr_matrix.copy().astype(bool)
     anomaly_flags_df[:] = False
 
+    zscore_df = get_pair_zscores(window)
     for col in pair_corrs.columns:
         parts = col.split("__")
         if len(parts) != 2:
             continue
         a1, a2 = parts
-        series = pair_corrs[col].dropna()
-        z_series, _, _ = compute_zscore_series(series, settings.HIST_WINDOW)
-        if row.name in z_series.index:
-            z_val = float(z_series.loc[row.name])
-            if not np.isnan(z_val):
-                zscore_matrix_df.loc[a1, a2] = z_val
-                zscore_matrix_df.loc[a2, a1] = z_val
-                is_anomaly = abs(z_val) > settings.DEFAULT_THRESHOLD
-                anomaly_flags_df.loc[a1, a2] = is_anomaly
-                anomaly_flags_df.loc[a2, a1] = is_anomaly
+        z_col = f"{col}__zscore"
+        if zscore_df is not None and z_col in zscore_df.columns and row.name in zscore_df.index:
+            z_val = float(zscore_df.loc[row.name, z_col])
+        else:
+            z_val = 0.0
+        if not np.isnan(z_val):
+            zscore_matrix_df.loc[a1, a2] = z_val
+            zscore_matrix_df.loc[a2, a1] = z_val
+            is_anomaly = abs(z_val) > settings.DEFAULT_THRESHOLD
+            anomaly_flags_df.loc[a1, a2] = is_anomaly
+            anomaly_flags_df.loc[a2, a1] = is_anomaly
 
     response.headers["Cache-Control"] = CACHE_HEADER
 
