@@ -56,7 +56,7 @@ async def lifespan(app: FastAPI):
     import asyncio
     # DO NOT mark started here — let the warm task set _warm only once cache
     # load is complete, so the frontend's BackendStatus waits for real readiness.
-    asyncio.get_event_loop().create_task(_warm_background())
+    asyncio.create_task(_warm_background())
     start_scheduler()
     yield
     logger.info("Shutting down...")
