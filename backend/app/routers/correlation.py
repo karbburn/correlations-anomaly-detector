@@ -140,13 +140,18 @@ async def correlation_timeseries(
     if start:
         series = series[series.index >= start]
 
-    z_series, _, _ = compute_zscore_series(series, settings.HIST_WINDOW)
+    zscore_df = get_pair_zscores(window)
+    z_col = f"{col}__zscore"
+    if zscore_df is not None and z_col in zscore_df.columns:
+        z_series = zscore_df[z_col].reindex(series.index)
+    else:
+        z_series = pd.Series(0.0, index=series.index)
 
     dates = [str(d.date()) if hasattr(d, "date") else str(d) for d in series.index]
     correlations = [round(float(v), 4) if not np.isnan(v) else None for v in series.values]
-    zscores = [round(float(v), 4) if not np.isnan(v) else None for v in z_series.reindex(series.index).values]
-    anomaly_flags = [bool(abs(z) > settings.DEFAULT_THRESHOLD) if z is not None and not np.isnan(z) else False
-                     for z in z_series.reindex(series.index).values]
+    zscores = [round(float(v), 4) if not np.isnan(v) else None for v in z_series.values]
+    anomaly_flags = [bool(abs(z) > settings.DEFAULT_THRESHOLD) if not np.isnan(z) else False
+                     for z in z_series.values]
 
     response.headers["Cache-Control"] = CACHE_HEADER
 
