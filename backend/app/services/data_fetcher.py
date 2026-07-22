@@ -150,7 +150,7 @@ def _yfinance_fallback(start: str) -> pd.DataFrame:
     dates = pd.bdate_range(start, end)
     n = len(dates)
     base = 100.0
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(int(pd.Timestamp.today().timestamp()) % (2**31))
     data = {}
     for asset in YF_COL_MAP.values():
         returns = rng.normal(0.0005, 0.01, n)
@@ -235,7 +235,7 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
     set_staleness("gsec_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
-    rng = np.random.default_rng(43)
+    rng = np.random.default_rng(int(pd.Timestamp.today().timestamp()) % (2**31) + 1)
     noise = rng.normal(0, 0.02, size=len(dates))
     series = pd.Series(noise, index=dates, name="GSEC10Y")
     return series
@@ -320,7 +320,7 @@ def _fallback_fii(start: str) -> pd.Series:
     set_staleness("fii_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
     dates = pd.bdate_range(start, end)
-    rng = np.random.default_rng(100)
+    rng = np.random.default_rng(int(pd.Timestamp.today().timestamp()) % (2**31) + 2)
     flows = rng.normal(loc=0.0, scale=1.0, size=len(dates))
     return pd.Series(flows, index=dates, name="FII_FLOW")
 
