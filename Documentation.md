@@ -1,7 +1,6 @@
 # Cross-Asset Correlations Anomaly Detector
 
 **Product Documentation — Version 1.0**
-**Classification: Internal**
 
 ---
 
@@ -322,4 +321,4 @@ When configured, a weekly HTML digest is sent every Monday at 08:00 (configurabl
 
 ---
 
-*Document maintained by the Quantitative Strategy team. For questions, contact the team lead.*
+*Document maintained by the Sourabh. For questions, contact via email.*
