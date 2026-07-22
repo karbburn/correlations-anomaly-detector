@@ -1,6 +1,6 @@
-# Cross-Asset Correlations Anomaly Detector
+# [CORRSHIFT](https://corrshift.vercel.app)
 
-**Product Documentation — Version 1.0**
+**Product Documentation — Version 1.0 · Internal**
 
 ---
 
