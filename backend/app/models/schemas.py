@@ -24,7 +24,7 @@ class AnomalyAlert(BaseModel):
     correlation: float
     zscore: float
     historical_mean: float
-    historical_std: float
+    historical_std: Optional[float] = None
     regime: str  # "breakdown" | "surge"
     interpretation: Optional["InterpretationModel"] = None
 
