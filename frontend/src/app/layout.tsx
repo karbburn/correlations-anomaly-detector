@@ -8,9 +8,9 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cross-Asset Correlations Anomaly Detector",
+  title: "CorrShift",
   description:
-    "Real-time monitoring of rolling correlations across Indian and global asset classes. Detects anomalous regime shifts using z-score analysis.",
+    "Real-time platform for monitoring rolling cross-asset correlations and detecting anomalous market regime shifts using statistical signal detection.",
 };
 
 export default function RootLayout({
