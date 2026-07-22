@@ -255,7 +255,7 @@ def fetch_nse_fii(start: str) -> pd.Series:
     try:
         session = requests.Session()
 
-        session.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10)
+        session.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10).raise_for_status()
 
         response = session.get(
             "https://www.nseindia.com/api/fiidiiTradeReact",
