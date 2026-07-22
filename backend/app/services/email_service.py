@@ -6,7 +6,7 @@ Graceful failure: logs errors, never crashes the scheduler.
 """
 
 import logging
-from datetime import date, timedelta
+from datetime import date
 from html import escape
 
 import pandas as pd
