@@ -55,3 +55,20 @@ jobs:
       - name: Audit dependencies
         continue-on-error: true
         run: npm audit --audit-level=high
+
+  smoke-test:
+    name: Live backend smoke test
+    runs-on: ubuntu-latest
+    # Only meaningful after a deploy to main (Render/Vercel auto-deploy from main).
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Wait for deploy and ping backend health
+        run: |
+          URL="https://correlations-anomaly-detector.onrender.com/api/health"
+          for i in $(seq 1 10); do
+            if curl -fsS --max-time 60 "$URL"; then
+              echo "Backend healthy"; exit 0
+            fi
+            echo "Attempt $i: backend not ready yet, retrying in 30s..."; sleep 30
+          done
+          echo "Backend did not become healthy after deploy"; exit 1
