@@ -2,6 +2,7 @@
 FastAPI application entry point with lifespan startup precomputation.
 """
 
+import asyncio
 import json
 import logging
 import sys
@@ -16,7 +17,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
 from app.config import get_settings
-from app.scheduler import start_scheduler
+from app.scheduler import start_scheduler, scheduler
 from app.services.cache import warm_cache
 from app.routers import health, correlation, anomaly, summary
 
@@ -63,13 +64,14 @@ limiter = Limiter(key_func=get_client_ip, default_limits=["100/minute"])
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    import asyncio
     # DO NOT mark started here — let the warm task set _warm only once cache
     # load is complete, so the frontend's BackendStatus waits for real readiness.
-    asyncio.create_task(_warm_background())
+    warm_task = asyncio.create_task(_warm_background())
     start_scheduler()
     yield
     logger.info("Shutting down...")
+    warm_task.cancel()
+    scheduler.shutdown(wait=False)
 
 
 async def _warm_background():
