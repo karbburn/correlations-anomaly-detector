@@ -206,7 +206,8 @@ export function AnomalyFeed() {
           <button
             onClick={handleCsvExport}
             disabled={!data?.alerts.length || isExporting}
-            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+            aria-label="Export alerts as CSV"
+            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             {isExporting ? "..." : "CSV"}
           </button>
@@ -214,7 +215,8 @@ export function AnomalyFeed() {
           <button
             onClick={handleXlsxExport}
             disabled={!data?.alerts.length || isExporting}
-            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+            aria-label="Export alerts as XLSX"
+            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
             {isExporting ? "..." : "XLSX"}
           </button>
@@ -239,8 +241,8 @@ export function AnomalyFeed() {
         </div>
       ) : (
         <>
-          <div className="overflow-y-auto max-h-80">
-            <table className="w-full text-xs text-left">
+          <div className="overflow-auto max-h-80">
+            <table className="w-full min-w-[540px] text-xs text-left">
               <thead className="sticky top-0 bg-card z-10 border-b border-border-muted">
                 <tr>
                   {["Date", "Pair", "Corr", "Z-score", "Regime"].map((h) => (
