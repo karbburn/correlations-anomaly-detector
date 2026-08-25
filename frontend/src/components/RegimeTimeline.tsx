@@ -58,19 +58,21 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;
 
-    const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
-    const accentRed = getCssVar("--accent-red") || (theme === "light" ? "#dc2626" : "#ef4444");
     const accentAmber = getCssVar("--accent-amber") || (theme === "light" ? "#b45309" : "#f59e0b");
     const bgSurface = getCssVar("--bg-surface") || (theme === "light" ? "#e4dfd6" : "#112a20");
     const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
     const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#2dd4bf");
+    // Blue/orange data scale (colorblind-safe); anomaly stays bright amber and
+    // strong_negative a burnt orange, separated by lightness as well as hue.
+    const corrNegative = getCssVar("--corr-negative") || (theme === "light" ? "#9a3412" : "#c2410c");
+    const corrPositive = getCssVar("--corr-positive") || (theme === "light" ? "#2563eb" : "#60a5fa");
 
     const activeColors: Record<string, string> = {
-      strong_positive: accentPrimary,
-      mild_positive: theme === "light" ? "#6ee7b7" : "rgba(16, 185, 129, 0.5)",
+      strong_positive: corrPositive,
+      mild_positive: theme === "light" ? "rgba(37, 99, 235, 0.45)" : "rgba(96, 165, 250, 0.45)",
       neutral: bgSurface,
-      mild_negative: theme === "light" ? "#fca5a5" : "rgba(239, 68, 68, 0.5)",
-      strong_negative: accentRed,
+      mild_negative: theme === "light" ? "rgba(234, 88, 12, 0.4)" : "rgba(194, 65, 12, 0.55)",
+      strong_negative: corrNegative,
       anomaly: accentAmber,
     };
 

@@ -14,6 +14,10 @@
   --border-default: #d4cfc6;
   --border-dim: #e4dfd6;
 
+  /* Diverging data scale (colorblind-safe blue/orange, not UI accents) */
+  --corr-positive: #2563eb;
+  --corr-negative: #9a3412;
+
   --accent-primary: #047857;
   --accent-primary-hover: #059669;
   --accent-teal: #0f766e;
@@ -41,6 +45,10 @@
 
   --border-default: #1a3a2e;
   --border-dim: #0f2b1f;
+
+  /* Diverging data scale (colorblind-safe blue/orange, not UI accents) */
+  --corr-positive: #60a5fa;
+  --corr-negative: #c2410c;
 
   --accent-primary: #10b981;
   --accent-primary-hover: #34d399;
