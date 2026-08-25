@@ -21,6 +21,7 @@ settings = get_settings()
 
 def _build_digest_html(alerts_df, dashboard_url: str) -> str:
     """Build HTML email body from recent alerts."""
+    alerts_df = alerts_df.copy()
     week_ago = pd.Timestamp.today() - pd.Timedelta(days=7)
     alerts_df["date"] = pd.to_datetime(alerts_df["date"])
     recent = alerts_df[alerts_df["date"] >= week_ago] if not alerts_df.empty else alerts_df
