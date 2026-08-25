@@ -22,7 +22,7 @@ export function useAnomalyFeed({
     refetchOnWindowFocus: false,
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (data && data.alerts && data.alerts.length > 0) return false;
+      if (data && data.alerts && data.alerts.length > 0) return 5 * 60 * 1000;
       return 5000;
     },
   });
