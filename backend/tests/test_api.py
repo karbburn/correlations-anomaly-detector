@@ -9,13 +9,17 @@ import pandas as pd
 from fastapi.testclient import TestClient
 
 
-from app.services.anomaly_detector import compute_zscore_series
-
 @pytest.fixture
 def mock_warm_store():
     """Pre-populate the in-memory store with synthetic data."""
     from app.services import cache
     from app.services.correlation_engine import compute_all_pair_correlations
+    from app.services.anomaly_detector import (
+        compute_zscore_series,
+        detect_anomalies,
+    )
+
+    snapshot = dict(cache._store)
 
     np.random.seed(42)
     n = 400
@@ -42,6 +46,15 @@ def mock_warm_store():
                 zscore_df[f"{col}__mean"] = mean
                 zscore_df[f"{col}__std"] = std
         cache._store[f"zscore_{w}d"] = zscore_df
+
+    cache._store["alerts_default"] = detect_anomalies(
+        cache._store["corr_60d"], threshold=2.0
+    )
+
+    yield
+
+    cache._store.clear()
+    cache._store.update(snapshot)
 
 
 @pytest.fixture
@@ -95,6 +108,24 @@ def test_anomaly_alerts_pagination(client):
     assert "limit" in data
     assert "has_more" in data
     assert data["limit"] == 10
+
+
+def test_anomaly_alerts_default_path_uses_cached_alerts(client):
+    resp = client.get("/api/anomaly/alerts")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["threshold"] == 2.0
+    assert data["total_count"] == len(data["alerts"]) or data["has_more"]
+
+
+def test_anomaly_alerts_interpret_enrichment(client):
+    resp = client.get("/api/anomaly/alerts?threshold=1.0&limit=3&interpret=true")
+    assert resp.status_code == 200
+    for alert in resp.json()["alerts"]:
+        interpretation = alert.get("interpretation")
+        assert interpretation is not None
+        assert interpretation["headline"]
+        assert interpretation["confidence"] in {"high", "medium", "low"}
 
 
 def test_regime_history(client):
