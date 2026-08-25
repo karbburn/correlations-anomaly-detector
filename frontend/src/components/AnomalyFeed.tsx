@@ -23,7 +23,10 @@ type AnomalyRowProps = {
  * work even though they live in the same fetched page.
  */
 function AnomalyRow({ alert, index, pageOffset, isExpanded, onToggle }: AnomalyRowProps) {
-  const { data: interpretation } = useInterpretAlert(
+  const {
+    data: interpretation,
+    isFetching,
+  } = useInterpretAlert(
     isExpanded ? alert : null,
     pageOffset + index,
     isExpanded,
@@ -77,9 +80,22 @@ function AnomalyRow({ alert, index, pageOffset, isExpanded, onToggle }: AnomalyR
           </span>
         </div>
         {/* Interpretation panel — only fetched when this row is expanded */}
-        {isExpanded && interpretation && (
+        {isExpanded && (interpretation || isFetching) && (
           <div className="px-3 pb-3">
-            <InterpretationCard interpretation={interpretation} />
+            {interpretation ? (
+              <InterpretationCard interpretation={interpretation} />
+            ) : (
+              <div className="border-l-2 border-accent-amber bg-elevated/50 px-4 py-3 font-mono text-[10px] text-dim animate-pulse">
+                ANALYZING_ANOMALY...
+              </div>
+            )}
+          </div>
+        )}
+        {isExpanded && !interpretation && !isFetching && (
+          <div className="px-3 pb-3">
+            <p className="font-mono text-[10px] text-dim">
+              {"// NO_INTERPRETATION_AVAILABLE"}
+            </p>
           </div>
         )}
       </td>
