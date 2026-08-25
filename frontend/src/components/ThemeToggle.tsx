@@ -1,23 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
 import { useAppStore } from "@/lib/store";
 import clsx from "clsx";
 
 export function ThemeToggle() {
   const theme = useAppStore((s) => s.theme);
   const setTheme = useAppStore((s) => s.setTheme);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
-    const initialTheme = saved || "dark";
-    setTheme(initialTheme);
-    if (initialTheme === "light") {
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.add("dark");
-    }
-  }, [setTheme]);
 
   const toggle = (newTheme: "dark" | "light") => {
     setTheme(newTheme);

@@ -16,7 +16,12 @@ export const useAppStore = create<AppStore>((set) => ({
   window: 60,
   threshold: 2.0,
   selectedPair: null,
-  theme: "dark",
+  // Seed from localStorage so the toggle matches the pre-hydration
+  // theme script; defaults to dark like the server-rendered markup.
+  theme:
+    typeof window !== "undefined" && localStorage.getItem("theme") === "light"
+      ? "light"
+      : "dark",
   setWindow: (window) => set({ window }),
   setThreshold: (threshold) => set({ threshold }),
   selectPair: (a1, a2) => set({ selectedPair: [a1, a2] }),
