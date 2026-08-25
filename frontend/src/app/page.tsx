@@ -39,31 +39,39 @@ function Dashboard() {
   // Sync URL params ↔ Zustand bidirectionally
   const [queryParams, setQueryParams] = useQueryParams();
 
-  // On mount: URL → Zustand (URL is source of truth on initial load)
+  // Keep URL params and store in sync: the URL wins on back/forward
+  // navigation, the UI wins on interaction. Both directions are no-ops
+  // when values already agree, so the effects converge.
   useEffect(() => {
-    const urlWindow = queryParams.w as 30 | 60 | 252;
-    if ([30, 60, 252].includes(urlWindow) && urlWindow !== window) {
-      setWindow(urlWindow);
+    if ([30, 60, 252].includes(queryParams.w) && queryParams.w !== window) {
+      setWindow(queryParams.w as 30 | 60 | 252);
     }
     if (queryParams.z !== threshold) {
       setThreshold(queryParams.z);
     }
-    if (queryParams.pair && !selectedPair) {
-      const parts = queryParams.pair.split("__");
-      if (parts.length === 2) {
+    const parts = queryParams.pair ? queryParams.pair.split("__") : null;
+    const matchesSelected =
+      (parts === null && selectedPair === null) ||
+      (parts !== null &&
+        parts.length === 2 &&
+        selectedPair !== null &&
+        parts[0] === selectedPair[0] &&
+        parts[1] === selectedPair[1]);
+    if (!matchesSelected) {
+      if (parts && parts.length === 2) {
         selectPair(parts[0], parts[1]);
+      } else {
+        clearPair();
       }
     }
-    // Only run on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [queryParams.w, queryParams.z, queryParams.pair]);
 
-  // Zustand → URL: keep URL in sync when user changes params via UI
   useEffect(() => {
     setQueryParams({
       w: window,
       z: threshold,
-      pair: selectedPair ? `${selectedPair[0]}__${selectedPair[1]}` : "",
+      pair: selectedPair ? `${selectedPair[0]}__${selectedPair[1]}` : null,
     });
   }, [window, threshold, selectedPair, setQueryParams]);
 
