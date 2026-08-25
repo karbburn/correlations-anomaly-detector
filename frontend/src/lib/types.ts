@@ -61,6 +61,7 @@ export interface HealthResponse {
   startup_complete: boolean;
   warming_stage?: string;
   cache_status: Record<string, { fresh: boolean; rows?: number }>;
+  data_freshness?: Record<string, boolean>;
 }
 
 export interface RegimeHistoryResponse {

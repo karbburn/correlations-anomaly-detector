@@ -18,6 +18,7 @@ import { MethodologyModal } from "@/components/MethodologyModal";
 
 import { useCorrelationMatrix } from "@/hooks/useCorrelationMatrix";
 import { usePairData } from "@/hooks/usePairData";
+import { useHealth } from "@/hooks/useHealth";
 import { useAppStore } from "@/lib/store";
 import { useQueryParams } from "@/lib/params";
 import { fetchRegimeHistory } from "@/lib/api";
@@ -95,6 +96,13 @@ function Dashboard() {
     },
   });
 
+  const { data: health } = useHealth();
+  const staleSources = health?.data_freshness
+    ? Object.entries(health.data_freshness)
+        .filter(([, stale]) => stale)
+        .map(([key]) => key.replace("_stale", "").toUpperCase())
+    : [];
+
   return (
     <>
       <BackendStatus onReady={onReady} />
@@ -143,6 +151,16 @@ function Dashboard() {
 
           {/* Main Content */}
           <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-live="polite">
+            {/* Degraded data warning */}
+            {staleSources.length > 0 && (
+              <div
+                role="status"
+                className="border border-accent-amber/60 bg-accent-amber/10 px-4 py-2 font-mono text-[10px] text-accent-amber uppercase tracking-wider"
+              >
+                [DEGRADED_DATA] Live feed unavailable for: {staleSources.join(", ")} — cached or synthetic data in use
+              </div>
+            )}
+
             {/* Asset Legend */}
             <AssetLegend />
 
