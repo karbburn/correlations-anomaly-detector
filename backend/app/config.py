@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURES: int = 3
     CIRCUIT_BREAKER_COOLDOWN: int = 300
 
+    # Synthetic random-walk data poisons a financial dashboard; stale real
+    # data with an honest staleness flag is preferred. Opt in only for
+    # local UI development without network access.
+    ALLOW_SYNTHETIC: bool = False
+
     RESEND_API_KEY: str = ""
     ALERT_RECIPIENTS: str = ""  # comma-separated emails
     ALERT_SCHEDULE_CRON: str = "0 8 * * 1"  # Monday 8 AM

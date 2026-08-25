@@ -140,22 +140,27 @@ def _fetch_yfinance_with_circuit(start: str, end: str) -> pd.DataFrame:
     return fetch_yfinance_prices(start, end)
 
 
-def _yfinance_fallback(start: str) -> pd.DataFrame:
-    """Generate synthetic price data when all sources fail."""
-    logger.error("All yfinance attempts failed — generating synthetic data")
+def _yfinance_fallback(start: str, end: Optional[str] = None) -> pd.DataFrame:
+    if end is None:
+        end = datetime.date.today().strftime("%Y-%m-%d")
     from pathlib import Path
     cache_path = Path(settings.CACHE_DIR) / "prices_last_known.parquet"
     if cache_path.exists():
-        logger.warning("Serving stale price cache")
+        logger.warning("Serving stale price cache (yfinance was down)")
         from app.services.cache import set_staleness
         set_staleness("prices_stale", True)
         try:
             return pd.read_parquet(cache_path)
         except Exception as cache_err:
-            logger.warning(f"Stale price cache corrupted ({cache_err}) — falling through to synthetic")
+            logger.warning(f"Stale price cache corrupted ({cache_err}) — falling through")
 
-    logger.error("No price cache — generating synthetic prices")
-    end = datetime.date.today().strftime("%Y-%m-%d")
+    if not settings.ALLOW_SYNTHETIC:
+        raise DataUnavailableError(
+            "No price source available and synthetic data is disabled "
+            "(set ALLOW_SYNTHETIC=true to allow)"
+        )
+
+    logger.error("No price cache and synthetic is enabled — generating synthetic prices")
     dates = pd.bdate_range(start, end)
     n = len(dates)
     base = 100.0
@@ -177,7 +182,7 @@ def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
     except (CircuitBreakerError, DataUnavailableError) as e:
         logger.warning(f"yfinance unavailable ({e}). Using fallback.")
         _SOURCE_FALLBACK["yfinance"] = True
-        return _yfinance_fallback(start)
+        return _yfinance_fallback(start, end)
 
 
 @retry(
@@ -231,7 +236,7 @@ def _fetch_fbil_with_circuit(start: str) -> pd.Series:
     return fetch_fbil_gsec(start)
 
 
-def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
+def fetch_rbi_gsec_fallback(start: str) -> Optional[pd.Series]:
     from pathlib import Path
     cache_path = Path(settings.CACHE_DIR) / "gsec_last_known.parquet"
 
@@ -246,9 +251,13 @@ def fetch_rbi_gsec_fallback(start: str) -> pd.Series:
             result = _ensure_unique_index(series[series.index >= start], "GSEC10Y (cached)")
             return result
         except Exception as cache_err:
-            logger.warning(f"Stale G-Sec cache corrupted ({cache_err}) — falling through to synthetic")
+            logger.warning(f"Stale G-Sec cache corrupted ({cache_err}) — falling through")
 
-    logger.error("No G-Sec cache available — generating synthetic data")
+    if not settings.ALLOW_SYNTHETIC:
+        logger.warning("No G-Sec source and synthetic data is disabled — omitting GSEC10Y from master")
+        return None
+
+    logger.error("No G-Sec cache and synthetic is enabled — generating synthetic data")
     from app.services.cache import set_staleness
     set_staleness("gsec_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
@@ -316,7 +325,7 @@ def _fetch_fii_with_circuit(start: str) -> pd.Series:
     return fetch_nse_fii(start)
 
 
-def _fallback_fii(start: str) -> pd.Series:
+def _fallback_fii(start: str) -> Optional[pd.Series]:
     from pathlib import Path
     cache_path = Path(settings.CACHE_DIR) / "fii_last_known.parquet"
 
@@ -331,9 +340,13 @@ def _fallback_fii(start: str) -> pd.Series:
             result = _ensure_unique_index(series[series.index >= start], "FII_FLOW (cached)")
             return result
         except Exception as cache_err:
-            logger.warning(f"Stale FII cache corrupted ({cache_err}) — falling through to synthetic")
+            logger.warning(f"Stale FII cache corrupted ({cache_err}) — falling through")
 
-    logger.error("No FII cache — generating synthetic data")
+    if not settings.ALLOW_SYNTHETIC:
+        logger.warning("No FII source and synthetic data is disabled — omitting FII_FLOW from master")
+        return None
+
+    logger.error("No FII cache and synthetic is enabled — generating synthetic data")
     from app.services.cache import set_staleness
     set_staleness("fii_stale", True)
     end = datetime.date.today().strftime("%Y-%m-%d")
@@ -386,6 +399,19 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
         gsec_diff = future_gsec.result()
         fii_norm = future_fii.result()
 
+    from pathlib import Path as _Path
+    _cache_dir = _Path(settings.CACHE_DIR)
+    try:
+        _cache_dir.mkdir(parents=True, exist_ok=True)
+        if not _SOURCE_FALLBACK.get("yfinance") and prices is not None and not prices.empty:
+            prices.to_parquet(_cache_dir / "prices_last_known.parquet")
+        if not _SOURCE_FALLBACK.get("gsec") and gsec_diff is not None and not gsec_diff.empty:
+            gsec_diff.to_frame().to_parquet(_cache_dir / "gsec_last_known.parquet")
+        if not _SOURCE_FALLBACK.get("fii") and fii_norm is not None and not fii_norm.empty:
+            fii_norm.to_frame().to_parquet(_cache_dir / "fii_last_known.parquet")
+    except Exception as e:
+        logger.warning(f"Failed to persist last-known caches: {e}")
+
     _validate_dataframe(prices, "prices")
     returns = prices.pct_change()
 
@@ -431,7 +457,7 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
     return df
 
 
-def _fetch_fbil_safe(start: str) -> pd.Series:
+def _fetch_fbil_safe(start: str) -> Optional[pd.Series]:
     try:
         result = _fetch_fbil_with_circuit(start)
         if result is not None and not result.empty and result.dropna().shape[0] >= FBIL_MIN_VALID_POINTS:
@@ -449,7 +475,7 @@ def _fetch_fbil_safe(start: str) -> pd.Series:
         return fetch_rbi_gsec_fallback(start)
 
 
-def _fetch_fii_safe(start: str) -> pd.Series:
+def _fetch_fii_safe(start: str) -> Optional[pd.Series]:
     try:
         result = _fetch_fii_with_circuit(start)
         if result is not None and not result.empty and result.dropna().shape[0] >= 10:

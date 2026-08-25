@@ -73,9 +73,11 @@ def _try_load_from_parquet(cache_dir: Path) -> bool:
 
         mtime = returns_path.stat().st_mtime
         age_hours = (time.time() - mtime) / 3600
-        if age_hours > 2:
+        if age_hours > 72:
             logger.info(f"Parquet cache is {age_hours:.1f}h old — re-fetching")
             return False
+        if age_hours > 2:
+            logger.info(f"Parquet cache is {age_hours:.1f}h old — serving stale while refreshing")
 
         logger.info("Loading returns from parquet cache...")
         returns = pd.read_parquet(returns_path)
