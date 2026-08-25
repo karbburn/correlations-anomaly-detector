@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
@@ -41,15 +41,23 @@ function Dashboard() {
   const [queryParams, setQueryParams] = useQueryParams();
 
   // Keep URL params and store in sync: the URL wins on back/forward
-  // navigation, the UI wins on interaction. Both directions are no-ops
-  // when values already agree, so the effects converge.
+  // navigation, the UI wins on interaction. importingRef marks renders
+  // where values came FROM the url, so the store-to-url effect skips
+  // its stale-closure pass instead of writing defaults back over them.
+  const importingFromUrl = useRef(false);
+
   useEffect(() => {
+    let imported = false;
+
     if ([30, 60, 252].includes(queryParams.w) && queryParams.w !== window) {
       setWindow(queryParams.w as 30 | 60 | 252);
+      imported = true;
     }
     if (queryParams.z !== threshold) {
       setThreshold(queryParams.z);
+      imported = true;
     }
+
     const parts = queryParams.pair ? queryParams.pair.split("__") : null;
     const matchesSelected =
       (parts === null && selectedPair === null) ||
@@ -64,11 +72,15 @@ function Dashboard() {
       } else {
         clearPair();
       }
+      imported = true;
     }
+
+    importingFromUrl.current = imported;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryParams.w, queryParams.z, queryParams.pair]);
 
   useEffect(() => {
+    if (importingFromUrl.current) return;
     setQueryParams({
       w: window,
       z: threshold,
