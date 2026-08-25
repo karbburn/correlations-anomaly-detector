@@ -167,19 +167,21 @@ function Dashboard() {
                       {/* Desktop: Heatmap */}
                       <div className="hidden md:block">
                         <CorrelationMatrix
+                          assets={matrixData.assets}
                           matrix={matrixData.matrix}
                           zscoreMatrix={matrixData.zscore_matrix}
                           threshold={threshold}
-                          onPairSelect={(a1, a2) => selectPair(a1, a2)}
+                          onPairSelect={selectPair}
                         />
                       </div>
                       {/* Mobile: Rank List */}
                       <div className="block md:hidden">
                         <AnomalyRankList
+                          assets={matrixData.assets}
                           matrix={matrixData.matrix}
                           zscoreMatrix={matrixData.zscore_matrix}
                           threshold={threshold}
-                          onPairSelect={(a1, a2) => selectPair(a1, a2)}
+                          onPairSelect={selectPair}
                         />
                       </div>
                     </>

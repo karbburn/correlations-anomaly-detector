@@ -1,11 +1,20 @@
 export const ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"] as const;
 
+export const ASSET_LABELS: Record<string, string> = {
+  NIFTY50: "Nifty 50",
+  USDINR: "USD/INR",
+  GOLD: "Gold",
+  CRUDE: "Crude",
+  GSEC10Y: "10Y G-Sec",
+  FII_FLOW: "FII Flow",
+};
+
 export interface CorrelationMatrixResponse {
   window: number;
   as_of_date: string;
   assets: string[];
-  matrix: number[][];
-  zscore_matrix: number[][];
+  matrix: (number | null)[][];
+  zscore_matrix: (number | null)[][];
   anomaly_flags: boolean[][];
 }
 
@@ -13,8 +22,8 @@ export interface PairTimeseriesResponse {
   pair: [string, string];
   window: number;
   dates: string[];
-  correlations: number[];
-  zscores: number[];
+  correlations: (number | null)[];
+  zscores: (number | null)[];
   anomaly_flags: boolean[];
 }
 

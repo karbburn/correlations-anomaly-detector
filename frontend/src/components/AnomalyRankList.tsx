@@ -1,11 +1,12 @@
 "use client";
 
 import clsx from "clsx";
-import { ASSETS } from "@/lib/types";
+import { ASSET_LABELS } from "@/lib/types";
 
 interface AnomalyRankListProps {
-  matrix: number[][];
-  zscoreMatrix: number[][];
+  assets: string[];
+  matrix: (number | null)[][];
+  zscoreMatrix: (number | null)[][];
   threshold: number;
   onPairSelect: (a1: string, a2: string) => void;
 }
@@ -19,18 +20,18 @@ interface PairEntry {
 }
 
 export function AnomalyRankList({
+  assets,
   matrix,
   zscoreMatrix,
   threshold,
   onPairSelect,
 }: AnomalyRankListProps) {
-  const assets = ASSETS;
-
   const pairs: PairEntry[] = [];
   for (let i = 0; i < assets.length; i++) {
     for (let j = i + 1; j < assets.length; j++) {
-      const corr = matrix[i]?.[j] ?? 0;
-      const zscore = zscoreMatrix[i]?.[j] ?? 0;
+      const corr = matrix[i]?.[j];
+      const zscore = zscoreMatrix[i]?.[j];
+      if (corr == null || zscore == null) continue;
       pairs.push({
         asset1: assets[i],
         asset2: assets[j],
@@ -59,7 +60,9 @@ export function AnomalyRankList({
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-foreground">
-              {pair.asset1} <span className="text-dim">↔</span> {pair.asset2}
+              {ASSET_LABELS[pair.asset1] ?? pair.asset1}{" "}
+              <span className="text-dim">↔</span>{" "}
+              {ASSET_LABELS[pair.asset2] ?? pair.asset2}
             </span>
             <span
               className={clsx(

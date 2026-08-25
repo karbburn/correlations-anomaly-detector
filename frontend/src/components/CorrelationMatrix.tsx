@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useCallback, memo } from "react";
 import * as d3 from "d3";
-import { ASSETS } from "@/lib/types";
+import { ASSET_LABELS } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
 
@@ -12,16 +12,16 @@ function getBrightness(hex: string): number {
   return (r * 299 + g * 587 + b * 114) / 1000;
 }
 
-const LABELS = ["Nifty 50", "USD/INR", "Gold", "Crude", "10Y G-Sec", "FII Flow"];
-
 interface Props {
-  matrix: number[][];
-  zscoreMatrix: number[][];
+  assets: string[];
+  matrix: (number | null)[][];
+  zscoreMatrix: (number | null)[][];
   threshold: number;
   onPairSelect: (a1: string, a2: string) => void;
 }
 
 export const CorrelationMatrix = memo(function CorrelationMatrix({
+  assets,
   matrix,
   zscoreMatrix,
   threshold,
@@ -31,11 +31,11 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
   const theme = useAppStore((s) => s.theme);
 
   const render = useCallback(() => {
-    if (!svgRef.current || !matrix.length) return;
+    if (!svgRef.current || !matrix.length || !assets.length) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    const n = ASSETS.length;
+    const n = assets.length;
     const cellSize = 76;
     const margin = { top: 70, right: 20, bottom: 20, left: 90 };
     const width = n * cellSize + margin.left + margin.right;
@@ -59,11 +59,13 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
       .domain([-1, 0, 1])
       .range([accentRed, bgElevated, accentPrimary]);
 
+    const label = (asset: string) => ASSET_LABELS[asset] ?? asset;
+
     const g = svg
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    LABELS.forEach((label, i) => {
+    assets.forEach((asset, i) => {
       g.append("text")
         .attr("x", -12)
         .attr("y", i * cellSize + cellSize / 2)
@@ -72,10 +74,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
         .attr("fill", textMuted)
-        .text(label);
+        .text(label(asset));
     });
 
-    LABELS.forEach((label, i) => {
+    assets.forEach((asset, i) => {
       g.append("text")
         .attr("x", i * cellSize + cellSize / 2)
         .attr("y", -14)
@@ -83,22 +85,23 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("font-size", 10)
         .attr("font-family", "var(--font-mono), monospace")
         .attr("fill", textMuted)
-        .text(label);
+        .text(label(asset));
     });
 
-    ASSETS.forEach((a1, i) => {
-      ASSETS.forEach((a2, j) => {
-        const val = matrix[i][j];
-        const z = zscoreMatrix[i][j];
-        const isAnomaly = Math.abs(z) > threshold;
+    assets.forEach((a1, i) => {
+      assets.forEach((a2, j) => {
+        const val = i < matrix.length ? matrix[i]?.[j] : undefined;
+        const z = i < zscoreMatrix.length ? zscoreMatrix[i]?.[j] : undefined;
+        const hasData = val != null && z != null;
+        const isAnomaly = hasData && Math.abs(z) > threshold;
         const isDiag = i === j;
 
         const cell = g
           .append("g")
           .attr("transform", `translate(${j * cellSize},${i * cellSize})`)
-          .style("cursor", isDiag ? "default" : "pointer");
+          .style("cursor", isDiag || !hasData ? "default" : "pointer");
 
-        if (!isDiag) {
+        if (!isDiag && hasData) {
           cell
             .attr("tabindex", 0)
             .attr("role", "button")
@@ -117,12 +120,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           .attr("width", cellSize - 2)
           .attr("height", cellSize - 2)
           .attr("rx", 0)
-          .attr("fill", isDiag ? bgElevated : colorScale(val))
+          .attr("fill", isDiag ? bgElevated : hasData ? colorScale(val) : bgElevated)
           .attr("opacity", isDiag ? 0.7 : 0.9)
           .attr("stroke", isDiag ? borderDefault : "none")
           .attr("stroke-width", isDiag ? 1 : 0);
 
-        if (!isDiag) {
+        if (!isDiag && hasData) {
           cell
             .on("mouseenter", function () {
               d3.select(this)
@@ -188,31 +191,44 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
 
         if (!isDiag) {
-          const bgColor = colorScale(val);
-          const brightness = getBrightness(bgColor);
-          const textColor = brightness > 128 ? "#1a1a1a" : "#ffffff";
+          if (!hasData) {
+            cell
+              .append("text")
+              .attr("x", (cellSize - 2) / 2)
+              .attr("y", (cellSize - 2) / 2)
+              .attr("dy", "0.35em")
+              .attr("text-anchor", "middle")
+              .attr("font-size", 11)
+              .attr("font-family", "var(--font-mono), monospace")
+              .attr("fill", textDim)
+              .text("—");
+          } else {
+            const bgColor = colorScale(val);
+            const brightness = getBrightness(bgColor);
+            const textColor = brightness > 128 ? "#1a1a1a" : "#ffffff";
 
-          cell
-            .append("text")
-            .attr("x", (cellSize - 2) / 2)
-            .attr("y", (cellSize - 2) / 2 - 4)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .attr("font-size", 12)
-            .attr("font-weight", "700")
-            .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", textColor)
-            .text(val.toFixed(2));
+            cell
+              .append("text")
+              .attr("x", (cellSize - 2) / 2)
+              .attr("y", (cellSize - 2) / 2 - 4)
+              .attr("dy", "0.35em")
+              .attr("text-anchor", "middle")
+              .attr("font-size", 12)
+              .attr("font-weight", "700")
+              .attr("font-family", "var(--font-mono), monospace")
+              .attr("fill", textColor)
+              .text(val.toFixed(2));
 
-          cell
-            .append("text")
-            .attr("x", (cellSize - 2) / 2)
-            .attr("y", (cellSize - 2) / 2 + 14)
-            .attr("text-anchor", "middle")
-            .attr("font-size", 9)
-            .attr("font-family", "var(--font-mono), monospace")
-            .attr("fill", isAnomaly ? accentAmber : textMuted)
-            .text(`z=${z.toFixed(1)}`);
+            cell
+              .append("text")
+              .attr("x", (cellSize - 2) / 2)
+              .attr("y", (cellSize - 2) / 2 + 14)
+              .attr("text-anchor", "middle")
+              .attr("font-size", 9)
+              .attr("font-family", "var(--font-mono), monospace")
+              .attr("fill", isAnomaly ? accentAmber : textMuted)
+              .text(`z=${z.toFixed(1)}`);
+          }
         } else {
           cell
             .append("text")
@@ -227,7 +243,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
       });
     });
-  }, [matrix, zscoreMatrix, threshold, onPairSelect, theme]);
+  }, [assets, matrix, zscoreMatrix, threshold, onPairSelect, theme]);
 
   useEffect(() => {
     render();
