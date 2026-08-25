@@ -10,6 +10,7 @@ interface MethodologyModalProps {
 export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const lastFocused = useRef<HTMLElement | null>(null);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -20,6 +21,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
 
   useEffect(() => {
     if (isOpen) {
+      lastFocused.current = document.activeElement as HTMLElement;
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
       const closeBtn = contentRef.current?.querySelector<HTMLElement>("button");
@@ -28,6 +30,8 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
+      lastFocused.current?.focus();
+      lastFocused.current = null;
     };
   }, [isOpen, handleKeyDown]);
 

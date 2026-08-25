@@ -108,7 +108,10 @@ function Dashboard() {
       <BackendStatus onReady={onReady} />
 
       {ready && (
-        <div className="min-h-screen bg-background text-foreground">
+        <div
+          className="min-h-screen bg-background text-foreground"
+          inert={showMethodology || undefined}
+        >
           {/* Skip to content link for keyboard users */}
           <a
             href="#main-content"
