@@ -4,7 +4,6 @@ Tests for the anomaly detector.
 
 import numpy as np
 import pandas as pd
-import pytest
 from app.services.anomaly_detector import (
     compute_zscore_series,
     detect_anomalies,

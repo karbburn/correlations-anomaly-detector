@@ -35,17 +35,6 @@ async def warm_cache() -> None:
     await loop.run_in_executor(None, _warm_sync)
 
 
-def mark_server_started() -> None:
-    """DEPRECATED: kept as a no-op for backward compat.
-
-    Warm-readiness is now signaled exclusively by the success path of
-    _warm_sync() flipping _store["_warm"] to True. Calling this from
-    lifespan would short-circuit the readiness signal and cause the
-    frontend to render the dashboard before the cache is actually loaded.
-    """
-    return
-
-
 def _warm_sync() -> None:
     cache_dir = Path(settings.CACHE_DIR)
     cache_dir.mkdir(parents=True, exist_ok=True)

@@ -9,7 +9,6 @@ Covers two behaviors that have been sources of subtle bugs:
    (>=2.5), else low. This must hold for both signs of z.
 """
 
-import pytest
 
 from app.services.interpretation import interpret_anomaly
 

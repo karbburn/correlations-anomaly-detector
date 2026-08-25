@@ -3,8 +3,6 @@ Tests for the correlation engine.
 """
 
 import numpy as np
-import pandas as pd
-import pytest
 from app.services.correlation_engine import (
     compute_all_pair_correlations,
     pair_corr_to_matrix,

@@ -43,21 +43,3 @@ class AlertsResponse(BaseModel):
     limit: int
     has_more: bool
     alerts: List[AnomalyAlert]
-
-
-class CacheStatus(BaseModel):
-    fresh: bool
-    as_of: Optional[str] = None
-    rows: Optional[int] = None
-
-
-class HealthResponse(BaseModel):
-    status: str
-    startup_complete: bool
-    cache_status: dict
-
-
-class RegimeHistoryResponse(BaseModel):
-    pairs: List[str]
-    dates: List[str]
-    regimes: dict  # pair_name -> list of regime strings
