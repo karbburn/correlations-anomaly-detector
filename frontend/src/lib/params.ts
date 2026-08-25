@@ -15,7 +15,6 @@ export const dashboardParams = {
   w: parseAsInteger.withDefault(60),
   z: parseAsFloat.withDefault(2.0),
   pair: parseAsString.withDefault(""),
-  range: parseAsString.withDefault("2Y"),
 };
 
 /**

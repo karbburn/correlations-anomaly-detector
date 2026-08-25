@@ -70,18 +70,3 @@ export interface RegimeHistoryResponse {
   correlations: Record<string, (number | null)[]>;
   zscores: Record<string, (number | null)[]>;
 }
-
-export interface SummaryTopMover {
-  pair: string;
-  zscore: number;
-  direction: string;
-  date: string;
-}
-
-export interface SummaryResponse {
-  as_of_date: string;
-  total_anomalies_today: number;
-  total_anomalies_week: number;
-  top_movers: SummaryTopMover[];
-  regime_summary: Record<string, number>;
-}

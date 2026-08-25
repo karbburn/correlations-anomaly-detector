@@ -18,7 +18,6 @@ interface PairData {
   dates: string[];
   correlations: (number | null)[];
   zscores: (number | null)[];
-  anomaly_flags: boolean[];
 }
 
 interface Props {

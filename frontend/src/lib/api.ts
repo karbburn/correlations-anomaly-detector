@@ -4,7 +4,6 @@ import type {
   AlertsResponse,
   HealthResponse,
   RegimeHistoryResponse,
-  SummaryResponse,
 } from "./types";
 
 async function apiFetch<T>(path: string, params?: Record<string, string | number>): Promise<T> {
@@ -70,8 +69,4 @@ export async function fetchRegimeHistory(
   window: number,
 ): Promise<RegimeHistoryResponse> {
   return apiFetch<RegimeHistoryResponse>("/api/anomaly/regime-history", { window });
-}
-
-export async function fetchSummary(): Promise<SummaryResponse> {
-  return apiFetch<SummaryResponse>("/api/summary");
 }
