@@ -305,7 +305,7 @@ When configured, a weekly HTML digest is sent every Monday at 08:00 (configurabl
 | `LOG_LEVEL` | No | `INFO` | Logging level |
 | `RETRY_MAX_ATTEMPTS` | No | `3` | Retry attempts per source |
 | `CIRCUIT_BREAKER_FAILURES` | No | `3` | Consecutive failures to open circuit |
-| `CIRCUIT_BREAKER_COOLDOWN` | No | `3600` | Cooldown before half-open (seconds) |
+| `CIRCUIT_BREAKER_COOLDOWN` | No | `300` | Cooldown before half-open (seconds) |
 | `RESEND_API_KEY` | No | — | Resend API key (weekly digest) |
 | `ALERT_RECIPIENTS` | No | — | Comma-separated email recipients |
 | `ALERT_SCHEDULE_CRON` | No | `0 8 * * 1` | Cron expression for digest schedule |
