@@ -68,6 +68,8 @@ Where `w` is the window size (30, 60, or 252 trading days). The minimum number o
 - Pearson correlation captures linear relationships only. Non-linear dependencies (e.g., tail dependence during crises) are not reflected.
 - Rolling windows introduce lag. A genuine regime shift will not appear as anomalous until sufficient observations accumulate within the window.
 - The 30-day window is the most responsive but also the most volatile. Analysts should cross-reference against the 60-day and 252-day views before drawing conclusions.
+- Forward-fill injects synthetic flat days. Prices are forward-filled (limit=3) before returns are computed, so days when an asset did not trade but NIFTY did contribute exact zero returns, slightly diluting volatility and biasing pairwise correlations toward zero on those overlaps.
+- GSEC10Y uses absolute changes while other assets use percentage returns. Yield enters the model as daily basis-point differences, so correlation magnitudes involving GSEC10Y are not directly comparable to pairs computed on percentage returns.
 
 ### 4.2 Z-Score Anomaly Detection
 
