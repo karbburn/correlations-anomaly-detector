@@ -190,8 +190,14 @@ def fetch_fbil_gsec(start: str) -> pd.Series:
         records = data.get("data", data)
         df = pd.DataFrame(records)
 
+        if len(df.columns) < 2:
+            raise DataUnavailableError(f"FBIL unexpected schema: {list(df.columns)}")
+
         date_col = next((c for c in df.columns if "date" in c.lower()), df.columns[0])
-        rate_col = next((c for c in df.columns if "rate" in c.lower() or "yield" in c.lower()), df.columns[1])
+        rate_col = next(
+            (c for c in df.columns if "rate" in c.lower() or "yield" in c.lower()),
+            df.columns[-1],
+        )
 
         df["date"] = pd.to_datetime(df[date_col], dayfirst=True)
         df = df.set_index("date").sort_index()
