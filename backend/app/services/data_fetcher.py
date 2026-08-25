@@ -405,6 +405,28 @@ def build_master_dataframe(start: Optional[str] = None, end: Optional[str] = Non
     _validate_dataframe(df, "master")
     df = df.dropna(how="all")
 
+    # Quarantine duplicated series: when one asset's column ends up
+    # mirroring another (upstream fallback aliasing), every pair it forms
+    # is fabricated with |corr| = 1. Drop the later column instead.
+    ordered = [a for a in ASSETS if a in df.columns]
+    corr = df[ordered].corr()
+    quarantine = set()
+    for i, a in enumerate(ordered):
+        if a in quarantine:
+            continue
+        for b in ordered[i + 1:]:
+            if b in quarantine:
+                continue
+            v = corr.loc[a, b]
+            if pd.notna(v) and abs(float(v)) > 0.999:
+                logger.error(
+                    f"Duplicated series detected: {b} mirrors {a} "
+                    f"(corr={float(v):.4f}) — quarantining {b}"
+                )
+                quarantine.add(b)
+    if quarantine:
+        df = df.drop(columns=list(quarantine))
+
     logger.info(f"Master DataFrame: {df.shape[0]} rows x {df.shape[1]} columns")
     return df
 
