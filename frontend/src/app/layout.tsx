@@ -8,9 +8,35 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CorrShift",
+  metadataBase: new URL("https://corrshift.vercel.app"),
+  title: "CorrShift — Cross-Asset Correlation Anomaly Detector",
   description:
     "Real-time platform for monitoring rolling cross-asset correlations and detecting anomalous market regime shifts using statistical signal detection.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "CorrShift — Cross-Asset Correlation Anomaly Detector",
+    description:
+      "Rolling correlation matrices, z-score regime detection and anomaly alerts across NIFTY 50, USD/INR, gold, crude, 10Y G-Sec and FII flows.",
+    url: "/",
+    siteName: "CorrShift",
+    type: "website",
+    images: [
+      {
+        url: "/icon.png",
+        width: 2048,
+        height: 2048,
+        alt: "CorrShift",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "CorrShift — Cross-Asset Correlation Anomaly Detector",
+    description:
+      "Rolling correlation matrices, z-score regime detection and anomaly alerts across Indian market assets.",
+  },
 };
 
 export default function RootLayout({
