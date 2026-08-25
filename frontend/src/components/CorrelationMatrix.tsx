@@ -44,7 +44,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
-    svg.attr("role", "grid");
+    svg.attr("role", "group");
     svg.attr("aria-label", "Correlation matrix heatmap. Press Tab to navigate cells, Enter to select a pair.");
 
     const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
@@ -61,6 +61,36 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const colorScale = d3.scaleLinear<string>()
       .domain([-1, 0, 1])
       .range([corrNegative, bgElevated, corrPositive]);
+
+    const highlightCell = function (this: SVGGElement) {
+      d3.select(this)
+        .select("rect")
+        .transition()
+        .duration(150)
+        .attr("opacity", 1)
+        .attr("stroke", accentPrimary)
+        .attr("stroke-width", 1.5);
+    };
+    const focusCell = function (this: SVGGElement) {
+      d3.select(this)
+        .select("rect")
+        .transition()
+        .duration(150)
+        .attr("opacity", 1)
+        .attr("stroke", accentPrimary)
+        .attr("stroke-width", 2);
+    };
+    const restCell =
+      (isAnomaly: boolean) =>
+      function (this: SVGGElement) {
+        d3.select(this)
+          .select("rect")
+          .transition()
+          .duration(150)
+          .attr("opacity", 0.9)
+          .attr("stroke", isAnomaly ? accentAmber : "none")
+          .attr("stroke-width", isAnomaly ? 2 : 0);
+      };
 
     const label = (asset: string) => ASSET_LABELS[asset] ?? asset;
 
@@ -130,42 +160,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
 
         if (!isDiag && hasData) {
           cell
-            .on("mouseenter", function () {
-              d3.select(this)
-                .select("rect")
-                .transition()
-                .duration(150)
-                .attr("opacity", 1)
-                .attr("stroke", accentPrimary)
-                .attr("stroke-width", 1.5);
-            })
-            .on("mouseleave", function () {
-              d3.select(this)
-                .select("rect")
-                .transition()
-                .duration(150)
-                .attr("opacity", 0.9)
-                .attr("stroke", isAnomaly ? accentAmber : "none")
-                .attr("stroke-width", isAnomaly ? 2 : 0);
-            })
-            .on("focus", function () {
-              d3.select(this)
-                .select("rect")
-                .transition()
-                .duration(150)
-                .attr("opacity", 1)
-                .attr("stroke", accentPrimary)
-                .attr("stroke-width", 2);
-            })
-            .on("blur", function () {
-              d3.select(this)
-                .select("rect")
-                .transition()
-                .duration(150)
-                .attr("opacity", 0.9)
-                .attr("stroke", isAnomaly ? accentAmber : "none")
-                .attr("stroke-width", isAnomaly ? 2 : 0);
-            });
+            .on("mouseenter", highlightCell)
+            .on("mouseleave", restCell(isAnomaly))
+            .on("focus", focusCell)
+            .on("blur", restCell(isAnomaly));
         }
 
         if (isAnomaly && !isDiag) {
