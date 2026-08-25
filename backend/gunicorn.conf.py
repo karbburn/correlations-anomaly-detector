@@ -1,21 +1,23 @@
 """
 Gunicorn production configuration.
+
+Bind address, port, and timeouts come from the same Settings object the app
+uses, so HOST/PORT/GUNICORN_TIMEOUT in the environment or .env apply uniformly.
 """
 
-import multiprocessing
-import os
+from app.config import get_settings
 
-# 0.0.0.0 required by container platforms (Render auto-detects the
-# port by scanning for 0.0.0.0 binds). For non-containerized local
-# use, set HOST=127.0.0.1 in the environment to override.
-bind = f"{os.getenv('HOST', '0.0.0.0')}:{os.getenv('PORT', '8000')}"
+settings = get_settings()
+
+# Containers must bind 0.0.0.0 for platform port detection (Render).
+bind = f"{settings.HOST}:{settings.PORT}"
 workers = 1  # Must be 1 — in-memory _store, scheduler, and circuit breaker cannot be shared across processes
 worker_class = "uvicorn.workers.UvicornWorker"
-timeout = int(os.getenv("GUNICORN_TIMEOUT", "120"))
+timeout = settings.GUNICORN_TIMEOUT
 keepalive = 5
 max_requests = 10000
 max_requests_jitter = 1000
 preload_app = False
 accesslog = "-"
 errorlog = "-"
-loglevel = os.getenv("LOG_LEVEL", "info").lower()
+loglevel = settings.LOG_LEVEL.lower()

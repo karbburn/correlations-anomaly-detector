@@ -10,8 +10,9 @@ ASSETS = ["NIFTY50", "USDINR", "GOLD", "CRUDE", "GSEC10Y", "FII_FLOW"]
 
 
 class Settings(BaseSettings):
-    HOST: str = "127.0.0.1"
+    HOST: str = "0.0.0.0"
     PORT: int = 8000
+    GUNICORN_TIMEOUT: int = 120
 
     APP_ENV: str = "development"
 
