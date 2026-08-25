@@ -7,7 +7,7 @@ import logging
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -48,7 +48,17 @@ else:
 
 logger = logging.getLogger(__name__)
 
-limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
+def get_client_ip(request: Request) -> str:
+    # Rightmost X-Forwarded-For hop is added by our own proxy (Render/Vercel),
+    # so it is the trustworthy client address; fall back to the socket peer.
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[-1].strip()
+    return get_remote_address(request)
+
+
+limiter = Limiter(key_func=get_client_ip, default_limits=["100/minute"])
 
 
 @asynccontextmanager
