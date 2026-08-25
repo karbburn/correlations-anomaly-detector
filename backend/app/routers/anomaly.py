@@ -109,7 +109,11 @@ async def anomaly_alerts(
                 alerts = detect_anomalies(pair_corrs, threshold=threshold, hist_window=settings.HIST_WINDOW)
 
     if start and not alerts.empty:
-        alerts = alerts[pd.to_datetime(alerts["date"]) >= pd.to_datetime(start)]
+        try:
+            start_dt = pd.to_datetime(start)
+        except (ValueError, TypeError):
+            raise HTTPException(400, f"Invalid start format: {start}. Use YYYY-MM-DD.")
+        alerts = alerts[pd.to_datetime(alerts["date"]) >= start_dt]
 
     if not alerts.empty:
         alerts = alerts.copy()

@@ -57,7 +57,10 @@ async def correlation_matrix(
         row = pair_corrs.loc[target]
         as_of = pd.Timestamp(date_str).date()
     else:
-        row = pair_corrs.dropna(how="all").iloc[-1]
+        clean = pair_corrs.dropna(how="all")
+        if clean.empty:
+            raise HTTPException(404, f"No correlation data available for window={window}")
+        row = clean.iloc[-1]
         as_of = row.name.date() if hasattr(row.name, "date") else row.name
 
     returns = get_returns()
@@ -138,7 +141,11 @@ async def correlation_timeseries(
     series = pair_corrs[col].dropna()
 
     if start:
-        series = series[series.index >= start]
+        try:
+            start_ts = pd.to_datetime(start)
+        except (ValueError, TypeError):
+            raise HTTPException(400, f"Invalid start format: {start}. Use YYYY-MM-DD.")
+        series = series[series.index >= start_ts]
 
     zscore_df = get_pair_zscores(window)
     z_col = f"{col}__zscore"
