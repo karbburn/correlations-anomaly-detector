@@ -48,11 +48,11 @@ export function WindowSelector() {
             onClick={() => setWindow(w)}
             role="radio"
             aria-checked={w === window}
-            aria-label={`${w} day rolling window`}
+            aria-label={`${w}D rolling window`}
             className={clsx(
               "px-3 py-1 text-[10px] font-semibold transition-all duration-150 uppercase cursor-pointer rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
               w === window
-                ? "bg-accent-primary text-white border-transparent"
+                ? "bg-accent-primary text-accent-primary-contrast border-transparent"
                 : "text-muted hover:text-foreground border-transparent hover:bg-elevated"
             )}
           >

@@ -23,11 +23,11 @@ export function ThemeToggle() {
         onClick={() => toggle("dark")}
         role="radio"
         aria-checked={theme === "dark"}
-        aria-label="Dark theme"
+        aria-label="DARK theme"
         className={clsx(
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "dark"
-            ? "bg-accent-primary text-white"
+            ? "bg-accent-primary text-accent-primary-contrast"
             : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
@@ -37,11 +37,11 @@ export function ThemeToggle() {
         onClick={() => toggle("light")}
         role="radio"
         aria-checked={theme === "light"}
-        aria-label="Light theme"
+        aria-label="LIGHT theme"
         className={clsx(
           "px-2.5 py-1 text-[10px] font-bold uppercase transition-all duration-150 rounded-none cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
           theme === "light"
-            ? "bg-accent-primary text-white"
+            ? "bg-accent-primary text-accent-primary-contrast"
             : "text-muted hover:text-foreground hover:bg-elevated"
         )}
       >
