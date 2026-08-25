@@ -20,10 +20,7 @@ export function useAnomalyFeed({
     queryFn: () => fetchAnomalyAlerts(window, threshold, offset, limit, undefined, interpret),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data && data.alerts && data.alerts.length > 0) return 5 * 60 * 1000;
-      return 5000;
-    },
+    refetchInterval: (query) =>
+      query.state.data !== undefined ? 5 * 60 * 1000 : 5000,
   });
 }

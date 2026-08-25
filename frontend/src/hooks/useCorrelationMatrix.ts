@@ -12,10 +12,7 @@ export function useCorrelationMatrix(ready: boolean, date?: string) {
     enabled: ready,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data && data.matrix && data.matrix.length > 0) return 5 * 60 * 1000;
-      return 5000;
-    },
+    refetchInterval: (query) =>
+      query.state.data !== undefined ? 5 * 60 * 1000 : 5000,
   });
 }
