@@ -1,57 +1,30 @@
 "use client";
 import { useEffect, useState } from "react";
-import { fetchHealth } from "@/lib/api";
+import { useHealth } from "@/hooks/useHealth";
 
 type Status = "checking" | "warming" | "ready" | "error";
 
 export function BackendStatus({ onReady }: { onReady: () => void }) {
-  const [status, setStatus] = useState<Status>("checking");
+  const { data, isError, refetch } = useHealth();
   const [elapsed, setElapsed] = useState(0);
 
+  const ready = Boolean(data?.startup_complete);
+
   useEffect(() => {
+    if (ready) {
+      onReady();
+      return;
+    }
     const start = Date.now();
     const timer = setInterval(() => {
       setElapsed(Math.floor((Date.now() - start) / 1000));
     }, 1000);
+    return () => clearInterval(timer);
+  }, [ready, onReady]);
 
-    let cancelled = false;
+  if (ready) return null;
 
-    const poll = async () => {
-      const maxAttempts = 60;
-      for (let i = 0; i < maxAttempts; i++) {
-        if (cancelled) return;
-        try {
-          const data = await fetchHealth();
-          if (cancelled) return;
-          if (data.startup_complete) {
-            setStatus("ready");
-            clearInterval(timer);
-            onReady();
-            return;
-          }
-          setStatus(i === 0 ? "checking" : "warming");
-        } catch {
-          if (cancelled) return;
-          setStatus(i === 0 ? "checking" : "warming");
-        }
-        if (cancelled) return;
-        await new Promise((r) => setTimeout(r, 3000));
-      }
-      if (!cancelled) {
-        setStatus("error");
-        clearInterval(timer);
-      }
-    };
-
-    poll();
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  if (status === "ready") return null;
+  const status: Status = data ? "warming" : isError ? "error" : "checking";
 
   return (
     <div className="fixed inset-0 bg-background flex items-center justify-center z-50 p-4">
@@ -66,7 +39,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
             <p className="text-accent-red text-base font-medium">Backend unavailable</p>
             <p className="text-dim text-sm">The backend may be cold-starting or temporarily down.</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => refetch()}
               className="px-4 py-2 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               RETRY
