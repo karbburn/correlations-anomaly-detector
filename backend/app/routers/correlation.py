@@ -12,7 +12,7 @@ import pandas as pd
 from fastapi import APIRouter, Query, Response, HTTPException
 
 from app.services.cache import get_pair_corrs, get_returns, get_pair_zscores
-from app.services.correlation_engine import pair_corr_to_matrix, ASSETS
+from app.services.correlation_engine import ASSETS
 from app.models.schemas import CorrelationMatrix
 from app.config import get_settings
 
@@ -65,30 +65,41 @@ async def correlation_matrix(
 
     returns = get_returns()
     assets = [a for a in ASSETS if returns is not None and a in returns.columns]
-    corr_matrix = pair_corr_to_matrix(row, assets)
-
-    zscore_matrix_df = corr_matrix.copy()
-    zscore_matrix_df[:] = 0.0
-    anomaly_flags_df = corr_matrix.copy().astype(bool)
-    anomaly_flags_df[:] = False
 
     zscore_df = get_pair_zscores(window)
+    n = len(assets)
+    index_of = {a: i for i, a in enumerate(assets)}
+    corr_out = [[None] * n for _ in range(n)]
+    zscore_out = [[None] * n for _ in range(n)]
+    flags_out = [[False] * n for _ in range(n)]
+    for i in range(n):
+        corr_out[i][i] = 1.0
+
     for col in pair_corrs.columns:
         parts = col.split("__")
         if len(parts) != 2:
             continue
         a1, a2 = parts
+        i, j = index_of.get(a1), index_of.get(a2)
+        if i is None or j is None or i == j:
+            continue
+
+        corr_val = row.get(col)
+        if corr_val is not None and not pd.isna(corr_val):
+            v = round(float(corr_val), 4)
+            corr_out[i][j] = v
+            corr_out[j][i] = v
+
         z_col = f"{col}__zscore"
         if zscore_df is not None and z_col in zscore_df.columns and row.name in zscore_df.index:
-            z_val = float(zscore_df.loc[row.name, z_col])
-        else:
-            z_val = 0.0
-        if not np.isnan(z_val):
-            zscore_matrix_df.loc[a1, a2] = z_val
-            zscore_matrix_df.loc[a2, a1] = z_val
-            is_anomaly = abs(z_val) > settings.DEFAULT_THRESHOLD
-            anomaly_flags_df.loc[a1, a2] = is_anomaly
-            anomaly_flags_df.loc[a2, a1] = is_anomaly
+            raw = zscore_df.loc[row.name, z_col]
+            if not pd.isna(raw):
+                z_val = round(float(raw), 4)
+                zscore_out[i][j] = z_val
+                zscore_out[j][i] = z_val
+                is_anomaly = abs(z_val) > settings.DEFAULT_THRESHOLD
+                flags_out[i][j] = is_anomaly
+                flags_out[j][i] = is_anomaly
 
     response.headers["Cache-Control"] = CACHE_HEADER
 
@@ -96,9 +107,9 @@ async def correlation_matrix(
         "window": window,
         "as_of_date": as_of,
         "assets": assets,
-        "matrix": corr_matrix.values.tolist(),
-        "zscore_matrix": zscore_matrix_df.values.tolist(),
-        "anomaly_flags": anomaly_flags_df.values.tolist(),
+        "matrix": corr_out,
+        "zscore_matrix": zscore_out,
+        "anomaly_flags": flags_out,
     }
 
 

@@ -40,7 +40,7 @@ def pair_corr_to_matrix(pair_row: pd.Series, assets: list = None) -> pd.DataFram
             continue
         a1, a2 = parts
         if a1 in assets and a2 in assets:
-            fval = float(val) if not np.isnan(val) else 0.0
+            fval = float(val)
             matrix.loc[a1, a2] = fval
             matrix.loc[a2, a1] = fval  # symmetric
 

@@ -11,8 +11,8 @@ class CorrelationMatrix(BaseModel):
     window: int
     as_of_date: date
     assets: List[str]
-    matrix: List[List[float]]
-    zscore_matrix: List[List[float]]
+    matrix: List[List[Optional[float]]]
+    zscore_matrix: List[List[Optional[float]]]
     anomaly_flags: List[List[bool]]
 
 
