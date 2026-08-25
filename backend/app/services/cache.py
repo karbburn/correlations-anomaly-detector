@@ -181,6 +181,9 @@ def _fetch_and_compute(cache_dir: Path) -> None:
         _store.update(zscore_data)
         _store["alerts_default"] = alerts
         _store["_warm"] = True
+    set_staleness("prices_stale", False)
+    set_staleness("gsec_stale", False)
+    set_staleness("fii_stale", False)
     _set_stage("ready")
     logger.info(f"  Returns: {returns.shape[0]} rows × {returns.shape[1]} assets")
     logger.info(f"  Alerts: {len(alerts)} rows")

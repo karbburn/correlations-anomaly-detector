@@ -18,7 +18,7 @@ async def health():
 
     if returns is not None:
         cache_status["master_returns"] = {
-            "fresh": True,
+            "fresh": not get_staleness("prices_stale"),
             "rows": returns.shape[0],
             "columns": list(returns.columns),
         }
