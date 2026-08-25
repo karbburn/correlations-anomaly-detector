@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import clsx from "clsx";
 
@@ -11,14 +11,32 @@ export function WindowSelector() {
   const setWindow = useAppStore((s) => s.setWindow);
   const setThreshold = useAppStore((s) => s.setThreshold);
 
+  const [value, setValue] = useState(threshold);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleChange = useCallback((value: number) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      setThreshold(value);
-    }, 300);
-  }, [setThreshold]);
+  // Adopt external threshold changes (e.g. URL import) unless a drag is pending.
+  useEffect(() => {
+    setValue((current) => (debounceRef.current ? current : threshold));
+  }, [threshold]);
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    [],
+  );
+
+  const handleChange = useCallback(
+    (next: number) => {
+      setValue(next);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        debounceRef.current = null;
+        setThreshold(next);
+      }, 300);
+    },
+    [setThreshold],
+  );
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 font-mono text-xs">
@@ -54,12 +72,11 @@ export function WindowSelector() {
           min={1.0}
           max={3.5}
           step={0.1}
-          defaultValue={threshold}
-          key={threshold}
+          value={value}
           onChange={(e) => handleChange(parseFloat(e.target.value))}
           aria-valuemin={1.0}
           aria-valuemax={3.5}
-          aria-valuenow={threshold}
+          aria-valuenow={value}
           aria-label={`Z-score threshold: ${threshold.toFixed(1)} sigma`}
           className="w-20 h-1 bg-surface border border-border-muted appearance-none cursor-pointer
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background
@@ -72,7 +89,7 @@ export function WindowSelector() {
                      [&::-moz-range-thumb]:rounded-none"
         />
         <span className="text-[10px] text-accent-primary font-bold tabular-nums w-8" aria-hidden="true">
-          ±{threshold.toFixed(1)}σ
+          ±{value.toFixed(1)}σ
         </span>
       </div>
     </div>
