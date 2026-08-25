@@ -86,7 +86,7 @@ function AnomalyRow({ alert, index, pageOffset, isExpanded, onToggle }: AnomalyR
             {interpretation ? (
               <InterpretationCard interpretation={interpretation} />
             ) : (
-              <div className="border-l-2 border-accent-amber bg-elevated/50 px-4 py-3 font-mono text-[10px] text-dim animate-pulse">
+              <div className="border-t border-border-muted bg-elevated/50 px-1 py-3 font-mono text-[10px] text-dim animate-pulse">
                 ANALYZING_ANOMALY...
               </div>
             )}

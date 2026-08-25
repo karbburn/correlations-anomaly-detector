@@ -23,7 +23,7 @@ export function InterpretationCard({ interpretation }: InterpretationCardProps) 
   const conf = CONFIDENCE_STYLES[interpretation.confidence] ?? CONFIDENCE_STYLES.low;
 
   return (
-    <div className="border-l-2 border-accent-amber bg-elevated/50 px-4 py-3 font-mono animate-in">
+    <div className="border-t border-border-muted bg-elevated/50 px-1 py-3 font-mono">
       {/* Headline */}
       <div className="flex items-start justify-between gap-3 mb-2">
         <p className="text-xs font-bold text-foreground leading-snug">
