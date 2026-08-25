@@ -36,6 +36,8 @@ def detect(window, threshold, start, output, matrix, pair):
     """Cross-Asset Correlations Anomaly Detector CLI."""
     click.echo(f"Fetching data from {start}...")
     returns = build_master_dataframe(start=start)
+    if returns.empty:
+        raise click.ClickException("No data returned for the requested period.")
 
     if matrix:
         click.echo(f"\nCorrelation Matrix (window={window}d, as of {returns.index[-1].date()})\n")
@@ -61,7 +63,7 @@ def detect(window, threshold, start, output, matrix, pair):
                 click.echo(f"Pair {a1}/{a2} not found. Valid assets: {ASSETS}")
                 return
 
-        series = corrs[col]
+        series = corrs[col].dropna()
         z, _, _ = compute_zscore_series(series)
         out = pd.DataFrame({"correlation": series, "zscore": z}).dropna().tail(30)
         click.echo(f"\nPair: {a1} vs {a2}  (window={window}d)\n")
