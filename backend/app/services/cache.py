@@ -12,7 +12,7 @@ from typing import Optional
 import pandas as pd
 
 from app.config import get_settings
-from app.services.data_fetcher import build_master_dataframe
+from app.services.data_fetcher import build_master_dataframe, get_source_fallbacks
 from app.services.correlation_engine import compute_all_pair_correlations
 from app.services.anomaly_detector import detect_anomalies, compute_zscore_series
 
@@ -170,9 +170,12 @@ def _fetch_and_compute(cache_dir: Path) -> None:
         _store.update(zscore_data)
         _store["alerts_default"] = alerts
         _store["_warm"] = True
-    set_staleness("prices_stale", False)
-    set_staleness("gsec_stale", False)
-    set_staleness("fii_stale", False)
+    # Reflect the outcome of THIS refresh: a source that fell back to
+    # stale cache or synthetic data stays flagged as stale.
+    fallbacks = get_source_fallbacks()
+    set_staleness("prices_stale", fallbacks["yfinance"])
+    set_staleness("gsec_stale", fallbacks["gsec"])
+    set_staleness("fii_stale", fallbacks["fii"])
     _set_stage("ready")
     logger.info(f"  Returns: {returns.shape[0]} rows × {returns.shape[1]} assets")
     logger.info(f"  Alerts: {len(alerts)} rows")

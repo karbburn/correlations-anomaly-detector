@@ -28,6 +28,15 @@ class DataQualityError(Exception):
     pass
 
 
+# Per-source provenance for the most recent master build: True means the
+# source fell back to stale cache or synthetic data.
+_SOURCE_FALLBACK = {"yfinance": False, "gsec": False, "fii": False}
+
+
+def get_source_fallbacks() -> dict:
+    return dict(_SOURCE_FALLBACK)
+
+
 ASSETS = {
     "NIFTY50":  {"ticker": "^NSEI",       "source": "yfinance"},
     "USDINR":   {"ticker": "INR=X",       "source": "yfinance"},
@@ -162,9 +171,12 @@ def _yfinance_fallback(start: str) -> pd.DataFrame:
 
 def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
     try:
-        return _fetch_yfinance_with_circuit(start, end)
+        result = _fetch_yfinance_with_circuit(start, end)
+        _SOURCE_FALLBACK["yfinance"] = False
+        return result
     except (CircuitBreakerError, DataUnavailableError) as e:
         logger.warning(f"yfinance unavailable ({e}). Using fallback.")
+        _SOURCE_FALLBACK["yfinance"] = True
         return _yfinance_fallback(start)
 
 
@@ -401,14 +413,17 @@ def _fetch_fbil_safe(start: str) -> pd.Series:
     try:
         result = _fetch_fbil_with_circuit(start)
         if result is not None and not result.empty and result.dropna().shape[0] >= FBIL_MIN_VALID_POINTS:
+            _SOURCE_FALLBACK["gsec"] = False
             return result
         if result is not None and not result.empty:
             logger.warning(
                 f"FBIL: only {result.dropna().shape[0]} valid points — falling back to synthetic"
             )
+        _SOURCE_FALLBACK["gsec"] = True
         return fetch_rbi_gsec_fallback(start)
     except (CircuitBreakerError, DataUnavailableError) as e:
         logger.warning(f"FBIL unavailable ({e}). Using fallback.")
+        _SOURCE_FALLBACK["gsec"] = True
         return fetch_rbi_gsec_fallback(start)
 
 
@@ -416,12 +431,15 @@ def _fetch_fii_safe(start: str) -> pd.Series:
     try:
         result = _fetch_fii_with_circuit(start)
         if result is not None and not result.empty and result.dropna().shape[0] >= 10:
+            _SOURCE_FALLBACK["fii"] = False
             return result
         if result is not None and not result.empty:
             logger.warning(
                 f"NSE FII: only {result.dropna().shape[0]} valid points — falling back to synthetic"
             )
+        _SOURCE_FALLBACK["fii"] = True
         return _fallback_fii(start)
     except (CircuitBreakerError, DataUnavailableError) as e:
         logger.warning(f"NSE FII unavailable ({e}). Using fallback.")
+        _SOURCE_FALLBACK["fii"] = True
         return _fallback_fii(start)
