@@ -103,9 +103,10 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           <p className="leading-relaxed">
             Window sizes available: <code className="text-accent-primary">30D</code> (short-term noise),{" "}
             <code className="text-accent-primary">60D</code> (default regime detection),{" "}
-            <code className="text-accent-primary">252D</code> (structural shifts). Returns are log-returns
-            for price-based assets (NIFTY50, USDINR, GOLD, CRUDE) and first-differences
-            for rate-based assets (GSEC10Y). FII_FLOW is z-score normalized raw net flow.
+            <code className="text-accent-primary">252D</code> (structural shifts). Returns are simple
+            daily percentage changes for price-based assets (NIFTY50, USDINR, GOLD, CRUDE),
+            first-differences for the rate-based asset (GSEC10Y), and z-score normalized raw net
+            flow for FII_FLOW.
           </p>
         </section>
 
@@ -205,10 +206,10 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             </thead>
             <tbody>
               {[
-                ["NIFTY50", "yfinance (^NSEI)", "log-returns"],
-                ["USDINR", "yfinance (USDINR=X)", "log-returns"],
-                ["GOLD", "yfinance (GOLDBEES.NS)", "log-returns"],
-                ["CRUDE", "yfinance (BZ=F)", "log-returns"],
+                ["NIFTY50", "yfinance (^NSEI)", "daily % change"],
+                ["USDINR", "yfinance (INR=X)", "daily % change"],
+                ["GOLD", "yfinance (GOLDBEES.NS)", "daily % change"],
+                ["CRUDE", "yfinance (BZ=F)", "daily % change"],
                 ["GSEC10Y", "FBIL API", "first-difference"],
                 ["FII_FLOW", "NSE FII/DII API", "z-score of raw flow"],
               ].map(([asset, source, transform]) => (
@@ -222,8 +223,9 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           </table>
           <p className="mt-2 leading-relaxed text-dim">
             All series are aligned on the NIFTY50 trading calendar. Gaps are
-            forward-filled (limit=5). If any asset has &gt;20% missing values after
-            alignment, the pipeline raises a DataQualityError.
+            forward-filled (prices limit=3, G-Sec limit=5, FII limit=3). If any
+            asset has &gt;20% missing values after alignment, the pipeline raises a
+            DataQualityError.
           </p>
         </section>
       </div>
