@@ -228,7 +228,7 @@ The `GET /api/health` endpoint exposes:
 
 ### 7.3 Email Digests
 
-When configured, a weekly HTML digest is sent every Monday at 08:00 (configurable via `ALERT_SCHEDULE_CRON`). Contains the top-5 movers by absolute z-score with a link to the dashboard. Degrades gracefully if the email provider is unavailable.
+When configured, a weekly HTML digest is sent every Monday at 08:00 IST (configurable via `ALERT_SCHEDULE_CRON` and `SCHEDULER_TIMEZONE`). Contains the top-5 movers by absolute z-score with a link to the dashboard. Degrades gracefully if the email provider is unavailable.
 
 ### 7.4 Rate Limiting
 
@@ -309,6 +309,7 @@ When configured, a weekly HTML digest is sent every Monday at 08:00 (configurabl
 | `RESEND_API_KEY` | No | — | Resend API key (weekly digest) |
 | `ALERT_RECIPIENTS` | No | — | Comma-separated email recipients |
 | `ALERT_SCHEDULE_CRON` | No | `0 8 * * 1` | Cron expression for digest schedule |
+| `SCHEDULER_TIMEZONE` | No | `Asia/Kolkata` | Timezone applied to the digest cron schedule |
 | `DASHBOARD_URL` | No | `http://localhost:3000` | Link in digest emails |
 
 ### Frontend Environment Variable

@@ -32,7 +32,9 @@ def start_scheduler() -> None:
     # Weekly anomaly digest — only if Resend API key is configured
     if settings.RESEND_API_KEY and settings.alert_recipients_list:
         try:
-            trigger = CronTrigger.from_crontab(settings.ALERT_SCHEDULE_CRON)
+            trigger = CronTrigger.from_crontab(
+                settings.ALERT_SCHEDULE_CRON, timezone=settings.SCHEDULER_TIMEZONE
+            )
             scheduler.add_job(
                 _send_digest,
                 trigger,

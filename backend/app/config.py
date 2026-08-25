@@ -34,6 +34,7 @@ class Settings(BaseSettings):
     RESEND_API_KEY: str = ""
     ALERT_RECIPIENTS: str = ""  # comma-separated emails
     ALERT_SCHEDULE_CRON: str = "0 8 * * 1"  # Monday 8 AM
+    SCHEDULER_TIMEZONE: str = "Asia/Kolkata"
     DASHBOARD_URL: str = "http://localhost:3000"
 
     @property
