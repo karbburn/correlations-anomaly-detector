@@ -3,6 +3,8 @@ Health check endpoint — no Cache-Control (always fresh).
 """
 
 from fastapi import APIRouter
+import pandas as pd
+
 from app.services.cache import is_cache_warm, get_pair_corrs, get_returns, get_staleness, get_warming_stage
 from app.services.circuit_breaker import circuit_breaker
 from app.scheduler import scheduler
@@ -27,7 +29,24 @@ async def health():
             data_quality[col] = {
                 "missing_pct": missing_pct,
                 "healthy": missing_pct < 20.0,
+                "mean": round(float(returns[col].mean()), 6),
+                "std": round(float(returns[col].std()), 6),
             }
+
+        # Flag columns that are near-perfectly correlated — a duplicated
+        # upstream series silently corrupts every pair it participates in.
+        cols = list(returns.columns)
+        corr_matrix = returns.corr()
+        duplicates = []
+        for i in range(len(cols)):
+            for j in range(i + 1, len(cols)):
+                v = corr_matrix.iloc[i, j]
+                if pd.notna(v) and abs(float(v)) > 0.999:
+                    duplicates.append({
+                        "columns": [cols[i], cols[j]],
+                        "corr": round(float(v), 6),
+                    })
+        cache_status["duplicated_columns"] = duplicates
 
     for w in [30, 60, 252]:
         corrs = get_pair_corrs(w)
