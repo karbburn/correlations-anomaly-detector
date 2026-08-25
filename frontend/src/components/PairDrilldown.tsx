@@ -116,7 +116,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
                 fontSize: "11px",
                 fontFamily: "var(--font-mono), monospace",
               }}
-              labelFormatter={(d) => parseLocalDate(d).toLocaleDateString("en-US", {
+              labelFormatter={(d) => parseLocalDate(String(d)).toLocaleDateString("en-US", {
                 day: "numeric", month: "short", year: "numeric",
               })}
               formatter={(value, name) => [
