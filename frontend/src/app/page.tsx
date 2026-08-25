@@ -101,11 +101,8 @@ function Dashboard() {
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: ready,
-    refetchInterval: (query) => {
-      const data = query.state.data;
-      if (data && data.pairs && data.pairs.length > 0) return 5 * 60 * 1000;
-      return 5000;
-    },
+    refetchInterval: (query) =>
+      query.state.data !== undefined ? 5 * 60 * 1000 : 5000,
   });
 
   const { data: health } = useHealth();
@@ -114,6 +111,13 @@ function Dashboard() {
         .filter(([, stale]) => stale)
         .map(([key]) => key.replace("_stale", "").toUpperCase())
     : [];
+
+  const drilldownRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (selectedPair) {
+      drilldownRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedPair]);
 
   return (
     <>
@@ -127,7 +131,7 @@ function Dashboard() {
           {/* Skip to content link for keyboard users */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-accent-primary focus:text-white focus:outline-none"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-accent-primary focus:text-accent-primary-contrast focus:outline-none"
           >
             Skip to main content
           </a>
@@ -138,8 +142,8 @@ function Dashboard() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <h1 className="text-xl font-bold tracking-tight text-foreground">
-                    Cross-Asset Correlations
-                    <span className="ml-2 text-sm font-normal text-accent-primary">
+                    Cross-Asset Correlations{" "}
+                    <span className="text-sm font-normal text-accent-primary">
                       Anomaly Detector
                     </span>
                   </h1>
@@ -166,15 +170,21 @@ function Dashboard() {
 
           {/* Main Content */}
           <main id="main-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6" aria-live="polite">
-            {/* Degraded data warning */}
-            {staleSources.length > 0 && (
-              <div
-                role="status"
-                className="border border-accent-amber/60 bg-accent-amber/10 px-4 py-2 font-mono text-[10px] text-accent-amber uppercase tracking-wider"
-              >
-                [DEGRADED_DATA] Live feed unavailable for: {staleSources.join(", ")} — cached or synthetic data in use
-              </div>
-            )}
+            {/* Data source status line — always rendered to avoid layout shift */}
+            <div
+              role="status"
+              className="min-h-7 flex items-center border border-border-muted px-4 font-mono text-[10px] uppercase tracking-wider truncate"
+            >
+              {health ? (
+                staleSources.length > 0 ? (
+                  <span className="text-accent-amber truncate">
+                    [DEGRADED_DATA] Live feed unavailable for: {staleSources.join(", ")} — cached or synthetic data in use
+                  </span>
+                ) : (
+                  <span className="text-dim truncate">[LIVE] All data sources fresh · auto-refresh 5 min</span>
+                )
+              ) : null}
+            </div>
 
             {/* Asset Legend */}
             <AssetLegend />
@@ -231,7 +241,9 @@ function Dashboard() {
                   )}
                 </ErrorBoundary>
                 <p className="text-[9px] text-dim mt-4 text-center font-mono">
-                  &gt;&gt; SELECT CELL TO PLOT HISTORICAL DRILLDOWN &lt;&lt;
+                  {selectedPair
+                    ? `>> DRILLDOWN ACTIVE: ${selectedPair[0]} × ${selectedPair[1]} <<`
+                    : ">> SELECT CELL TO PLOT HISTORICAL DRILLDOWN <<"}
                 </p>
               </div>
 
@@ -242,8 +254,9 @@ function Dashboard() {
             </div>
 
             {/* Pair Drilldown (conditionally rendered) */}
-            {selectedPair && (
-              <ErrorBoundary>
+            <div ref={drilldownRef} className="scroll-mt-24">
+              {selectedPair && (
+                <ErrorBoundary>
                 {pairLoading ? (
                   <div className="h-48 flex items-center justify-center bg-background border border-border-muted rounded-none">
                     <div className="w-6 h-6 border-2 border-border-muted border-t-accent-primary rounded-none animate-spin" />
@@ -269,8 +282,9 @@ function Dashboard() {
                     onClose={clearPair}
                   />
                 ) : null}
-              </ErrorBoundary>
-            )}
+                </ErrorBoundary>
+              )}
+            </div>
 
             {/* Regime Timeline */}
             {regimeData && (

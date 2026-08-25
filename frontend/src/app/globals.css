@@ -20,6 +20,7 @@
 
   --accent-primary: #047857;
   --accent-primary-hover: #059669;
+  --accent-primary-contrast: #ffffff;
   --accent-teal: #0f766e;
   --accent-amber: #92400e;
   --accent-red: #b91c1c;
@@ -52,6 +53,7 @@
 
   --accent-primary: #10b981;
   --accent-primary-hover: #34d399;
+  --accent-primary-contrast: #052e1f;
   --accent-teal: #14b8a6;
   --accent-amber: #f59e0b;
   --accent-red: #ef4444;
@@ -73,6 +75,7 @@
 
   --color-accent-primary: var(--accent-primary);
   --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-primary-contrast: var(--accent-primary-contrast);
   --color-accent-teal: var(--accent-teal);
   --color-accent-amber: var(--accent-amber);
   --color-accent-red: var(--accent-red);
