@@ -118,10 +118,14 @@ export function AnomalyFeed() {
   // See: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
   const [prevWindow, setPrevWindow] = useState(window);
   const [prevThreshold, setPrevThreshold] = useState(threshold);
+  const [prevOffset, setPrevOffset] = useState(offset);
   if (prevWindow !== window || prevThreshold !== threshold) {
     setPrevWindow(window);
     setPrevThreshold(threshold);
     setOffset(0);
+    setExpandedRow(null);
+  } else if (prevOffset !== offset) {
+    setPrevOffset(offset);
     setExpandedRow(null);
   }
 
@@ -224,7 +228,7 @@ export function AnomalyFeed() {
               <tbody>
                 {data?.alerts.map((alert, i) => (
                   <AnomalyRow
-                    key={i}
+                    key={`${alert.date}__${alert.asset1}__${alert.asset2}`}
                     alert={alert}
                     index={i}
                     pageOffset={offset}
