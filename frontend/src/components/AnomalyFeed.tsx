@@ -4,6 +4,7 @@ import { useAnomalyFeed } from "@/hooks/useAnomalyFeed";
 import { useInterpretAlert } from "@/hooks/useInterpretAlert";
 import { useAppStore } from "@/lib/store";
 import { InterpretationCard } from "@/components/InterpretationCard";
+import { fetchAnomalyAlerts } from "@/lib/api";
 import clsx from "clsx";
 import type { AnomalyAlert } from "@/lib/types";
 
@@ -133,29 +134,61 @@ export function AnomalyFeed() {
     setExpandedRow(expandedRow === idx ? null : idx);
   };
 
-  const exportCsv = () => {
-    if (!data?.alerts.length) return;
-    const escapeCsv = (val: string | number) => {
-      const str = String(val);
-      return str.includes(",") || str.includes('"') || str.includes("\n")
-        ? `"${str.replace(/"/g, '""')}"`
-        : str;
-    };
-    const headers = ["date", "asset1", "asset2", "correlation", "zscore", "regime"];
-    const rows = data.alerts.map((a) =>
-      [a.date, a.asset1, a.asset2, a.correlation, a.zscore, a.regime]
-        .map(escapeCsv)
-        .join(",")
-    );
-    const blob = new Blob([headers.join(",") + "\n" + rows.join("\n")], {
-      type: "text/csv",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `alerts_${window}d_z${threshold}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+  // Exports cover the full result set, so pages are fetched in bulk here.
+  const collectAllAlerts = async (): Promise<AnomalyAlert[]> => {
+    if (!data?.total_count) return [];
+    const pageSize = 500;
+    const all: AnomalyAlert[] = [];
+    for (let off = 0; off < data.total_count; off += pageSize) {
+      const resp = await fetchAnomalyAlerts(window, threshold, off, pageSize);
+      all.push(...resp.alerts);
+      if (!resp.has_more) break;
+    }
+    return all;
+  };
+
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleCsvExport = async () => {
+    setIsExporting(true);
+    try {
+      const all = await collectAllAlerts();
+      const escapeCsv = (val: string | number) => {
+        const str = String(val);
+        return str.includes(",") || str.includes('"') || str.includes("\n")
+          ? `"${str.replace(/"/g, '""')}"`
+          : str;
+      };
+      const headers = ["date", "asset1", "asset2", "correlation", "zscore", "regime"];
+      const rows = all.map((a) =>
+        [a.date, a.asset1, a.asset2, a.correlation, a.zscore, a.regime]
+          .map(escapeCsv)
+          .join(",")
+      );
+      const blob = new Blob([headers.join(",") + "\n" + rows.join("\n")], {
+        type: "text/csv",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `alerts_${window}d_z${threshold}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleXlsxExport = async () => {
+    setIsExporting(true);
+    try {
+      const all = await collectAllAlerts();
+      if (!all.length) return;
+      const { exportAlertsToExcel } = await import("@/lib/exportExcel");
+      exportAlertsToExcel(all, window, threshold);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -171,23 +204,19 @@ export function AnomalyFeed() {
         </div>
         <div className="flex items-center gap-1">
           <button
-            onClick={exportCsv}
-            disabled={!data?.alerts.length}
+            onClick={handleCsvExport}
+            disabled={!data?.alerts.length || isExporting}
             className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
-            CSV
+            {isExporting ? "..." : "CSV"}
           </button>
           <span className="text-dim text-[10px]">|</span>
           <button
-            onClick={async () => {
-              if (!data?.alerts.length) return;
-              const { exportAlertsToExcel } = await import("@/lib/exportExcel");
-              exportAlertsToExcel(data.alerts, window, threshold);
-            }}
-            disabled={!data?.alerts.length}
+            onClick={handleXlsxExport}
+            disabled={!data?.alerts.length || isExporting}
             className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-foreground transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
           >
-            XLSX
+            {isExporting ? "..." : "XLSX"}
           </button>
         </div>
       </div>
