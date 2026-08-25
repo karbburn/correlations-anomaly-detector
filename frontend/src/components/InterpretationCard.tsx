@@ -14,9 +14,9 @@ interface InterpretationCardProps {
 }
 
 const CONFIDENCE_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  high:   { bg: "bg-accent-red/10",     text: "text-accent-red",     label: "HIGH CONF" },
+  high:   { bg: "bg-accent-primary/10", text: "text-accent-primary", label: "HIGH CONF" },
   medium: { bg: "bg-accent-amber/10",   text: "text-accent-amber",   label: "MED CONF" },
-  low:    { bg: "bg-accent-primary/10",  text: "text-accent-primary", label: "LOW CONF" },
+  low:    { bg: "bg-muted/10",          text: "text-muted",          label: "LOW CONF" },
 };
 
 export function InterpretationCard({ interpretation }: InterpretationCardProps) {
