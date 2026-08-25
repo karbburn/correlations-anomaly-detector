@@ -3,6 +3,7 @@ import { useEffect, useRef, memo, useMemo } from "react";
 import * as d3 from "d3";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
+import { parseLocalDate } from "@/lib/date";
 
 const PAIR_LABELS: Record<string, string> = {
   NIFTY50__USDINR: "Nifty×USD",
@@ -116,7 +117,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
         .attr("font-family", "var(--font-mono), monospace")
         .attr("fill", textDim)
         .attr("transform", `rotate(-45, ${i * cellW + cellW / 2}, ${pairs.length * cellH + 16})`)
-        .text(new Date(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
+        .text(parseLocalDate(date).toLocaleDateString("en-US", { month: "short", year: "2-digit" }));
     });
 
     pairs.forEach((pair, pi) => {

@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
+import { parseLocalDate } from "@/lib/date";
 
 interface PairData {
   dates: string[];
@@ -73,7 +74,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
             <XAxis
               dataKey="date"
               tickFormatter={(d) => {
-                const dt = new Date(d);
+                const dt = parseLocalDate(d);
                 return dt.toLocaleDateString("en-US", { month: "short", year: "2-digit" });
               }}
               tick={{ fontSize: 9, fill: tickColor, fontFamily: "var(--font-mono), monospace" }}
@@ -116,7 +117,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
                 fontSize: "11px",
                 fontFamily: "var(--font-mono), monospace",
               }}
-              labelFormatter={(d) => new Date(d).toLocaleDateString("en-US", {
+              labelFormatter={(d) => parseLocalDate(d).toLocaleDateString("en-US", {
                 day: "numeric", month: "short", year: "numeric",
               })}
               formatter={(value, name) => [
