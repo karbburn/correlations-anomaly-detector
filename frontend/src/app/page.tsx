@@ -158,7 +158,7 @@ function Dashboard() {
                   <ThemeToggle />
                   <button
                     onClick={() => setShowMethodology(true)}
-                    className="px-2 py-1 text-[10px] font-bold text-dim hover:text-accent-primary border border-border-muted hover:border-accent-primary transition-all cursor-pointer rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                    className="min-h-11 min-w-11 px-3 py-2.5 text-[10px] font-bold text-dim hover:text-accent-primary border border-border-muted hover:border-accent-primary transition-all cursor-pointer rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
                     aria-label="Open methodology explanation"
                   >
                     [?]

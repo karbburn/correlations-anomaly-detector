@@ -51,7 +51,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
             )}
             <button
               onClick={() => refetch()}
-              className="px-4 py-2 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="min-h-11 min-w-11 px-4 py-2 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background inline-flex items-center justify-center"
             >
               RETRY
             </button>

@@ -50,7 +50,7 @@ export function WindowSelector() {
             aria-checked={w === window}
             aria-label={`${w}D rolling window`}
             className={clsx(
-              "px-3 py-1 text-[10px] font-semibold transition-all duration-150 uppercase cursor-pointer rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+              "min-h-11 min-w-11 px-3 py-2 text-[10px] font-semibold transition-all duration-150 uppercase cursor-pointer rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center",
               w === window
                 ? "bg-accent-primary text-accent-primary-contrast border-transparent"
                 : "text-muted hover:text-foreground border-transparent hover:bg-elevated"
@@ -80,11 +80,11 @@ export function WindowSelector() {
           aria-label={`Z-score threshold: ${threshold.toFixed(1)} sigma`}
           className="w-20 h-1 bg-surface border border-border-muted appearance-none cursor-pointer
                      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background
-                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5
-                     [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-accent-primary
+                     [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4
+                     [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-accent-primary
                      [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-none
                      [&::-webkit-slider-thumb]:rounded-none
-                     [&::-moz-range-thumb]:w-2.5 [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:bg-accent-primary
+                     [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:bg-accent-primary
                      [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-none
                      [&::-moz-range-thumb]:rounded-none"
         />

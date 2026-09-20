@@ -207,7 +207,7 @@ export function AnomalyFeed() {
             onClick={handleCsvExport}
             disabled={!data?.alerts.length || isExporting}
             aria-label="Export alerts as CSV"
-            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+            className="min-h-11 min-w-11 px-3 py-2 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
           >
             {isExporting ? "..." : "CSV"}
           </button>
@@ -216,7 +216,7 @@ export function AnomalyFeed() {
             onClick={handleXlsxExport}
             disabled={!data?.alerts.length || isExporting}
             aria-label="Export alerts as XLSX"
-            className="px-2 py-1 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+            className="min-h-11 min-w-11 px-3 py-2 text-[10px] font-semibold text-accent-primary hover:bg-accent-teal hover:text-accent-primary-contrast transition-all disabled:text-dim disabled:cursor-not-allowed cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
           >
             {isExporting ? "..." : "XLSX"}
           </button>
@@ -286,7 +286,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
                 disabled={offset === 0}
-                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                className="min-h-11 min-w-11 px-3 py-2 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
               >
                 PREV
               </button>
@@ -296,7 +296,7 @@ export function AnomalyFeed() {
               <button
                 onClick={() => setOffset(offset + PAGE_SIZE)}
                 disabled={!data.has_more}
-                className="px-3 py-1 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                className="min-h-11 min-w-11 px-3 py-2 border border-border-muted text-[10px] text-muted hover:text-foreground hover:border-accent-primary disabled:opacity-20 disabled:text-dim disabled:cursor-not-allowed cursor-pointer transition-all rounded-none uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
               >
                 NEXT
               </button>

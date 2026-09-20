@@ -60,7 +60,7 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
         <button
           onClick={onClose}
           aria-label="Close pair drilldown"
-          className="text-dim hover:text-accent-primary hover:border-accent-primary border border-transparent px-1.5 py-0.5 transition-all rounded-none uppercase text-[10px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+          className="min-h-11 min-w-11 text-dim hover:text-accent-primary hover:border-accent-primary border border-transparent px-3 py-2 transition-all rounded-none uppercase text-[10px] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background inline-flex items-center justify-center"
         >
           [CLOSE]
         </button>
