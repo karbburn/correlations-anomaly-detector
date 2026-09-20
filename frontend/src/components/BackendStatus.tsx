@@ -9,6 +9,8 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
   const [elapsed, setElapsed] = useState(0);
 
   const ready = Boolean(data?.startup_complete);
+  const warmingStage = (data as { warming_stage?: string } | undefined)?.warming_stage;
+  const isWarmingError = warmingStage === "error";
 
   useEffect(() => {
     if (ready) {
@@ -24,7 +26,7 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
 
   if (ready) return null;
 
-  const status: Status = data ? "warming" : isError ? "error" : "checking";
+  const status: Status = isWarmingError ? "error" : data ? "warming" : isError ? "error" : "checking";
 
   return (
     <div className="fixed inset-0 bg-background flex items-center justify-center z-50 p-4">
@@ -36,8 +38,17 @@ export function BackendStatus({ onReady }: { onReady: () => void }) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
-            <p className="text-accent-red text-base font-medium">Backend unavailable</p>
-            <p className="text-dim text-sm">The backend may be cold-starting or temporarily down.</p>
+            <p className="text-accent-red text-base font-medium">Backend warming failed</p>
+            <p className="text-dim text-sm">
+              {isWarmingError
+                ? "Data fetch failed (yfinance/FBIL/NSE or cold cache). Check Render logs or enable ALLOW_SYNTHETIC=true as fallback, then retry."
+                : "The backend may be cold-starting or temporarily down."}
+            </p>
+            {isWarmingError && (
+              <p className="text-muted text-[10px] break-all">
+                warming_stage=error · elapsed {elapsed}s · try RETRY or restart Render service
+              </p>
+            )}
             <button
               onClick={() => refetch()}
               className="px-4 py-2 text-[10px] font-semibold text-accent-primary border border-border-muted hover:bg-elevated transition-all cursor-pointer uppercase rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"

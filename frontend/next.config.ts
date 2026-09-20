@@ -5,8 +5,11 @@ const backendOrigin = (
   process.env.NEXT_PUBLIC_API_URL ||
   (isDev
     ? "http://localhost:8000"
-    : "https://correlations-anomaly-detector-backend.onrender.com")
+    : "https://correlations-anomaly-detector.onrender.com")
 ).replace(/\/$/, "");
+
+// Allow both legacy and current Render hosts in CSP (proxy may point to either)
+const cspConnectSrc = `connect-src 'self' ${backendOrigin} https://correlations-anomaly-detector.onrender.com https://correlations-anomaly-detector-backend.onrender.com`;
 
 if (isDev && !process.env.NEXT_PUBLIC_API_URL) {
   console.warn(
@@ -61,7 +64,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https://corrshift.sourabhpradhan.in https://sourabhpradhan.in",
               "font-src 'self' data:",
-              `connect-src 'self' ${backendOrigin}`,
+              cspConnectSrc,
               "form-action 'none'",
               "frame-ancestors 'self' https://corrshift.sourabhpradhan.in https://www.sourabhpradhan.in https://sourabhpradhan.in",
               "base-uri 'none'",
