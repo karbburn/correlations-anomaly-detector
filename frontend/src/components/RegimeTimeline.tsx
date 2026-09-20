@@ -69,9 +69,9 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
 
     const activeColors: Record<string, string> = {
       strong_positive: corrPositive,
-      mild_positive: theme === "light" ? "rgba(37, 99, 235, 0.45)" : "rgba(96, 165, 250, 0.45)",
+      mild_positive: theme === "light" ? "rgba(37, 99, 235, 0.65)" : "rgba(96, 165, 250, 0.65)",
       neutral: bgSurface,
-      mild_negative: theme === "light" ? "rgba(234, 88, 12, 0.4)" : "rgba(194, 65, 12, 0.55)",
+      mild_negative: theme === "light" ? "rgba(234, 88, 12, 0.6)" : "rgba(194, 65, 12, 0.65)",
       strong_negative: corrNegative,
       anomaly: accentAmber,
     };
@@ -91,6 +91,8 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
     svg.attr("viewBox", `0 0 ${width} ${height}`);
     svg.attr("role", "img");
     svg.attr("aria-label", "Regime timeline heatmap showing correlation regime classifications over time for each asset pair.");
+    const defs = svg.append("defs");
+    defs.append("pattern").attr("id", "anomaly-hatch").attr("patternUnits", "userSpaceOnUse").attr("width", 3).attr("height", 3).attr("patternTransform", "rotate(45)").append("line").attr("x1", 0).attr("y1", 0).attr("x2", 0).attr("y2", 3).attr("stroke", theme === "light" ? "#78350f" : "#fff").attr("stroke-width", 0.7).attr("opacity", 0.35);
 
     const g = svg
       .append("g")
@@ -130,8 +132,14 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
         const regime = pairRegimes[origIdx] ?? "neutral";
         const color = activeColors[regime] ?? activeColors.neutral;
         const isAnomaly = regime === "anomaly";
+        const corr = correlations[pair]?.[origIdx] ?? null;
+        const z = zscores[pair]?.[origIdx] ?? null;
+        const date = dates[origIdx] ?? sampledDates[si] ?? "";
+        const label = `${PAIR_LABELS[pair] ?? pair} ${date}: ${regime}${corr != null ? ` corr ${corr.toFixed(2)}` : ""}${z != null ? ` z ${z.toFixed(1)}` : ""}`;
 
-        g.append("rect")
+        const cell = g.append("g").attr("role", "img").attr("aria-label", label);
+        cell.append("title").text(label);
+        cell.append("rect")
           .attr("x", si * cellW)
           .attr("y", pi * cellH)
           .attr("width", cellW)
@@ -141,6 +149,15 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
           .attr("opacity", isAnomaly ? 1.0 : 0.9)
           .attr("stroke", isAnomaly ? color : "none")
           .attr("stroke-width", isAnomaly ? 0.5 : 0);
+        if (isAnomaly) {
+          cell.append("rect")
+            .attr("x", si * cellW)
+            .attr("y", pi * cellH)
+            .attr("width", cellW)
+            .attr("height", cellH - 1)
+            .attr("fill", "url(#anomaly-hatch)")
+            .attr("pointer-events", "none");
+        }
       });
     });
 
