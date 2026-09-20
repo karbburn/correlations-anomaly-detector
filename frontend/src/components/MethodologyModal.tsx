@@ -64,19 +64,21 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 overflow-y-auto flex items-start sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm overscroll-contain"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-4"
       onClick={(e) => {
         if (e.target === overlayRef.current) onClose();
       }}
     >
-      <div
-        ref={contentRef}
-        tabIndex={-1}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Methodology"
-        className="relative my-4 w-full max-w-2xl max-h-[85vh] overflow-y-auto overscroll-contain bg-background border border-border-muted p-6 sm:p-8 font-mono text-sm leading-relaxed text-secondary rounded-none shadow-2xl focus:outline-none touch-pan-y"
-      >
+      <div className="min-h-full flex items-center justify-center">
+        <div
+          ref={contentRef}
+          tabIndex={-1}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Methodology"
+          className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-background border border-border-muted p-6 sm:p-8 font-mono text-sm leading-relaxed text-secondary rounded-none shadow-2xl focus:outline-none"
+          style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
+        >
         {/* Close */}
         <button
           onClick={onClose}
@@ -232,6 +234,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             DataQualityError.
           </p>
         </section>
+        </div>
       </div>
     </div>
   );
