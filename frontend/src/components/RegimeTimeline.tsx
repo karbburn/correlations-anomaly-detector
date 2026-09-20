@@ -2,7 +2,8 @@
 import { useEffect, useRef, memo, useMemo } from "react";
 import { select } from "d3-selection";
 import { useAppStore } from "@/lib/store";
-import { getCssVar } from "@/lib/css";
+import { getCssVarCached } from "@/lib/css";
+import { useMemo } from "react";
 import { parseLocalDate } from "@/lib/date";
 
 const PAIR_LABELS: Record<string, string> = {
@@ -55,17 +56,19 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
     return result;
   }, [pairs, correlations, zscores, threshold]);
 
+  const themeVars = useMemo(() => ({
+    accentAmber: getCssVarCached("--accent-amber", theme, theme === "light" ? "#b45309" : "#f59e0b"),
+    bgSurface: getCssVarCached("--bg-surface", theme, theme === "light" ? "#e4dfd6" : "#112a20"),
+    textMuted: getCssVarCached("--text-muted", theme, theme === "light" ? "#6b6b6b" : "#5eead4"),
+    textDim: getCssVarCached("--text-dim", theme, theme === "light" ? "#999999" : "#2dd4bf"),
+    corrNegative: getCssVarCached("--corr-negative", theme, theme === "light" ? "#9a3412" : "#c2410c"),
+    corrPositive: getCssVarCached("--corr-positive", theme, theme === "light" ? "#2563eb" : "#60a5fa"),
+  }), [theme]);
+
   useEffect(() => {
     if (!svgRef.current || !pairs.length || !dates.length) return;
 
-    const accentAmber = getCssVar("--accent-amber") || (theme === "light" ? "#b45309" : "#f59e0b");
-    const bgSurface = getCssVar("--bg-surface") || (theme === "light" ? "#e4dfd6" : "#112a20");
-    const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
-    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#2dd4bf");
-    // Blue/orange data scale (colorblind-safe); anomaly stays bright amber and
-    // strong_negative a burnt orange, separated by lightness as well as hue.
-    const corrNegative = getCssVar("--corr-negative") || (theme === "light" ? "#9a3412" : "#c2410c");
-    const corrPositive = getCssVar("--corr-positive") || (theme === "light" ? "#2563eb" : "#60a5fa");
+    const { accentAmber, bgSurface, textMuted, textDim, corrNegative, corrPositive } = themeVars;
 
     const activeColors: Record<string, string> = {
       strong_positive: corrPositive,
@@ -193,7 +196,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
         .attr("fill", textMuted)
         .text(d.label);
     });
-  }, [pairs, dates, regimes, theme]);
+  }, [pairs, dates, regimes, themeVars]);
 
   return (
     <div className="overflow-x-auto">

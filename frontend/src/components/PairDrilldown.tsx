@@ -11,8 +11,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useAppStore } from "@/lib/store";
-import { getCssVar } from "@/lib/css";
+import { getCssVarCached } from "@/lib/css";
 import { parseLocalDate } from "@/lib/date";
+import { useMemo } from "react";
 
 interface PairData {
   dates: string[];
@@ -38,13 +39,16 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
     zscore: data.zscores[i],
   }));
 
-  const gridColor = getCssVar("--border-default") || (isDark ? "#1a3a2e" : "#d4cfc6");
-  const tickColor = getCssVar("--text-dim") || (isDark ? "#2dd4bf" : "#6b6b6b");
-  const tooltipBg = getCssVar("--bg-primary") || (isDark ? "#060d0a" : "#ffffff");
-  const tooltipBorder = getCssVar("--border-default") || (isDark ? "#1a3a2e" : "#d4cfc6");
-  const accentPrimary = getCssVar("--accent-primary") || (isDark ? "#10b981" : "#047857");
-  const accentAmber = getCssVar("--accent-amber") || (isDark ? "#f59e0b" : "#b45309");
-  const accentRed = getCssVar("--accent-red") || (isDark ? "#ef4444" : "#dc2626");
+  const themeVars = useMemo(() => ({
+    gridColor: getCssVarCached("--border-default", theme, isDark ? "#1a3a2e" : "#d4cfc6"),
+    tickColor: getCssVarCached("--text-dim", theme, isDark ? "#2dd4bf" : "#6b6b6b"),
+    tooltipBg: getCssVarCached("--bg-primary", theme, isDark ? "#060d0a" : "#ffffff"),
+    tooltipBorder: getCssVarCached("--border-default", theme, isDark ? "#1a3a2e" : "#d4cfc6"),
+    accentPrimary: getCssVarCached("--accent-primary", theme, isDark ? "#10b981" : "#047857"),
+    accentAmber: getCssVarCached("--accent-amber", theme, isDark ? "#f59e0b" : "#b45309"),
+    accentRed: getCssVarCached("--accent-red", theme, isDark ? "#ef4444" : "#dc2626"),
+  }), [theme, isDark]);
+  const { gridColor, tickColor, tooltipBg, tooltipBorder, accentPrimary, accentAmber, accentRed } = themeVars;
 
   return (
     <div className="bg-card p-5 rounded-none font-mono">

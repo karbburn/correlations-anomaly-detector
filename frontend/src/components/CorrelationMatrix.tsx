@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useRef, useCallback, memo } from "react";
+import { useEffect, useRef, useCallback, memo, useMemo } from "react";
 import { select } from "d3-selection";
 import { scaleLinear } from "d3-scale";
 import { ASSET_LABELS } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
-import { getCssVar } from "@/lib/css";
+import { getCssVarCached } from "@/lib/css";
 
 function getBrightness(hex: string): number {
   const r = parseInt(hex.slice(1, 3), 16);
@@ -31,6 +31,18 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
   const svgRef = useRef<SVGSVGElement>(null);
   const theme = useAppStore((s) => s.theme);
 
+  const themeVars = useMemo(() => ({
+    accentPrimary: getCssVarCached("--accent-primary", theme, theme === "light" ? "#047857" : "#10b981"),
+    accentAmber: getCssVarCached("--accent-amber", theme, theme === "light" ? "#b45309" : "#f59e0b"),
+    bgElevated: getCssVarCached("--bg-elevated", theme, theme === "light" ? "#ede8df" : "#0d1f18"),
+    borderDefault: getCssVarCached("--border-default", theme, theme === "light" ? "#d4cfc6" : "#1a3a2e"),
+    textMuted: getCssVarCached("--text-muted", theme, theme === "light" ? "#6b6b6b" : "#5eead4"),
+    textDim: getCssVarCached("--text-dim", theme, theme === "light" ? "#999999" : "#2dd4bf"),
+    corrNegative: getCssVarCached("--corr-negative", theme, theme === "light" ? "#9a3412" : "#c2410c"),
+    corrPositive: getCssVarCached("--corr-positive", theme, theme === "light" ? "#2563eb" : "#60a5fa"),
+  }), [theme]);
+  const { accentPrimary, accentAmber, bgElevated, borderDefault, textMuted, textDim, corrNegative, corrPositive } = themeVars;
+
   const render = useCallback(() => {
     if (!svgRef.current || !matrix.length || !assets.length) return;
 
@@ -48,16 +60,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     svg.attr("role", "group");
     svg.attr("aria-label", "Correlation matrix heatmap. Press Tab to navigate cells, Enter to select a pair.");
 
-    const accentPrimary = getCssVar("--accent-primary") || (theme === "light" ? "#047857" : "#10b981");
-    const accentAmber = getCssVar("--accent-amber") || (theme === "light" ? "#b45309" : "#f59e0b");
-    const bgElevated = getCssVar("--bg-elevated") || (theme === "light" ? "#ede8df" : "#0d1f18");
-    const borderDefault = getCssVar("--border-default") || (theme === "light" ? "#d4cfc6" : "#1a3a2e");
-    const textMuted = getCssVar("--text-muted") || (theme === "light" ? "#6b6b6b" : "#5eead4");
-    const textDim = getCssVar("--text-dim") || (theme === "light" ? "#999999" : "#2dd4bf");
-    // Diverging data scale uses blue/orange so correlation sign survives
-    // red-green color blindness; UI accents stay on the brand palette.
-    const corrNegative = getCssVar("--corr-negative") || (theme === "light" ? "#9a3412" : "#c2410c");
-    const corrPositive = getCssVar("--corr-positive") || (theme === "light" ? "#2563eb" : "#60a5fa");
+
 
     const colorScale = scaleLinear<string>()
       .domain([-1, 0, 1])
@@ -245,7 +248,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
       });
     });
-  }, [assets, matrix, zscoreMatrix, threshold, onPairSelect, theme]);
+  }, [assets, matrix, zscoreMatrix, threshold, onPairSelect, theme, themeVars]);
 
   useEffect(() => {
     render();
