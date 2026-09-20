@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Real-time cross-asset correlation intelligence for Indian markets — NIFTY 50, USD/INR, Gold, Crude, 10Y G-Sec & FII flows. By Sourabh Pradhan.",
     start_url: "/",
     display: "standalone",
-    background_color: "#0a0a0a",
-    theme_color: "#0a0a0a",
+    background_color: "#060d0a",
+    theme_color: "#060d0a",
     icons: [
       {
         src: "/icon.png",
