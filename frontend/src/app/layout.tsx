@@ -9,7 +9,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 const SITE_URL = "https://corrshift.sourabhpradhan.in";
-const PORTFOLIO_URL = "https://sourabhpradhan.in";
+const PORTFOLIO_URL = "https://www.sourabhpradhan.in";
 const SITE_NAME = "CorrShift";
 const OG_IMAGE = "/icon.png";
 

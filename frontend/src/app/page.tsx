@@ -312,13 +312,13 @@ function Dashboard() {
               </p>
               <div className="flex items-center gap-3">
                 <a
-                  href="https://sourabhpradhan.in"
+                  href="https://www.sourabhpradhan.in"
                   target="_blank"
                   rel="noopener noreferrer author"
                   aria-label="Sourabh Pradhan portfolio"
                   className="text-accent-primary font-semibold tracking-wider hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
                 >
-                  sourabhpradhan.in
+                  www.sourabhpradhan.in
                 </a>
                 <span className="text-border-muted">|</span>
                 <a
