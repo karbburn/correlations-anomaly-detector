@@ -43,10 +43,35 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
   }), [theme]);
   const { accentPrimary, accentAmber, bgElevated, borderDefault, textMuted, textDim, corrNegative, corrPositive } = themeVars;
 
+  const prevThresholdRef = useRef(threshold);
   const render = useCallback(() => {
     if (!svgRef.current || !matrix.length || !assets.length) return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const svgEl = svgRef.current as SVGSVGElement & { __thresholdOnly?: boolean };
+    const thresholdOnly = svgEl.children.length > 0 && prevThresholdRef.current !== threshold;
+    if (thresholdOnly) {
+      const root = select(svgEl);
+      assets.forEach((a1, i) => {
+        assets.forEach((a2, j) => {
+          if (i === j) return;
+          const z = zscoreMatrix[i]?.[j];
+          const hasData = matrix[i]?.[j] != null && z != null;
+          const isAnomaly = hasData && Math.abs(z as number) > threshold;
+          const idx = i * assets.length + j;
+          const cell = root.selectAll<SVGGElement, unknown>(`g.cell-${idx}`);
+          if (cell.empty()) return;
+          cell.select("rect.anomaly-frame").attr("stroke", isAnomaly ? accentAmber : "none").attr("stroke-width", isAnomaly ? 2 : 0).style("display", isAnomaly ? null : "none");
+          cell.selectAll("polygon.anomaly-corner").style("display", isAnomaly ? null : "none");
+          cell.select("text.z-label").attr("fill", isAnomaly ? accentAmber : textMuted);
+          if (isAnomaly) {
+            cell.select("rect.anomaly-frame").selectAll("animate").empty() || (() => {})();
+          }
+        });
+      });
+      prevThresholdRef.current = threshold;
+      return;
+    }
 
     const n = assets.length;
     const cellSize = 76;
@@ -135,6 +160,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
 
         const cell = g
           .append("g")
+          .attr("class", `cell-${i * assets.length + j}`)
           .attr("transform", `translate(${j * cellSize},${i * cellSize})`)
           .style("cursor", isDiag || !hasData ? "default" : "pointer");
 
@@ -170,17 +196,19 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .on("blur", restCell(isAnomaly));
         }
 
-        if (isAnomaly && !isDiag) {
+        if (!isDiag) {
           const anomalyRect = cell
             .append("rect")
+            .attr("class", "anomaly-frame")
             .attr("width", cellSize - 2)
             .attr("height", cellSize - 2)
             .attr("rx", 0)
             .attr("fill", "none")
-            .attr("stroke", accentAmber)
-            .attr("stroke-width", 2);
+            .attr("stroke", isAnomaly ? accentAmber : "none")
+            .attr("stroke-width", isAnomaly ? 2 : 0)
+            .style("display", isAnomaly ? null : "none");
 
-          if (!prefersReducedMotion) {
+          if (!prefersReducedMotion && isAnomaly) {
             anomalyRect
               .append("animate")
               .attr("attributeName", "opacity")
@@ -191,8 +219,10 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
 
           cell
             .append("polygon")
+            .attr("class", "anomaly-corner")
             .attr("points", `${cellSize - 15},0 ${cellSize - 2},0 ${cellSize - 2},13`)
-            .attr("fill", accentAmber);
+            .attr("fill", accentAmber)
+            .style("display", isAnomaly ? null : "none");
         }
 
         if (!isDiag) {
@@ -226,6 +256,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
 
             cell
               .append("text")
+              .attr("class", "z-label")
               .attr("x", (cellSize - 2) / 2)
               .attr("y", (cellSize - 2) / 2 + 14)
               .attr("text-anchor", "middle")
@@ -248,6 +279,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         }
       });
     });
+    prevThresholdRef.current = threshold;
   }, [assets, matrix, zscoreMatrix, threshold, onPairSelect, theme, themeVars]);
 
   useEffect(() => {
