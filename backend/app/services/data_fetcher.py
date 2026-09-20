@@ -208,10 +208,20 @@ def _fetch_yfinance_safe(start: str, end: str) -> pd.DataFrame:
 def fetch_fbil_gsec(start: str) -> pd.Series:
     logger.info("Fetching G-Sec yield from FBIL...")
     try:
-        response = requests.get(
-            "https://fbil.org.in/api/index.php/GsecBenchmark",
-            timeout=FBIL_TIMEOUT,
-        )
+        try:
+            from curl_cffi import requests as crequests  # type: ignore
+
+            creq = crequests.get(
+                "https://fbil.org.in/api/index.php/GsecBenchmark",
+                timeout=FBIL_TIMEOUT,
+                impersonate="chrome",
+            )
+            response = creq  # type: ignore[assignment]
+        except Exception:
+            response = requests.get(
+                "https://fbil.org.in/api/index.php/GsecBenchmark",
+                timeout=FBIL_TIMEOUT,
+            )
         response.raise_for_status()
         data = response.json()
 
@@ -291,15 +301,24 @@ def fetch_rbi_gsec_fallback(start: str) -> Optional[pd.Series]:
 def fetch_nse_fii(start: str) -> pd.Series:
     logger.info("Fetching FII net flow from NSE (two-step session)...")
     try:
-        session = requests.Session()
+        try:
+            from curl_cffi import requests as crequests  # type: ignore
 
-        session.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10).raise_for_status()
-
-        response = session.get(
-            "https://www.nseindia.com/api/fiidiiTradeReact",
-            headers=NSE_HEADERS,
-            timeout=NSE_TIMEOUT,
-        )
+            csession = crequests.Session(impersonate="chrome")
+            csession.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10).raise_for_status()
+            response = csession.get(
+                "https://www.nseindia.com/api/fiidiiTradeReact",
+                headers=NSE_HEADERS,
+                timeout=NSE_TIMEOUT,
+            )
+        except Exception:
+            session = requests.Session()
+            session.get("https://www.nseindia.com", headers=NSE_HEADERS, timeout=10).raise_for_status()
+            response = session.get(
+                "https://www.nseindia.com/api/fiidiiTradeReact",
+                headers=NSE_HEADERS,
+                timeout=NSE_TIMEOUT,
+            )
         response.raise_for_status()
         data = response.json()
 

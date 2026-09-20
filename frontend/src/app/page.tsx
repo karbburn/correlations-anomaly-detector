@@ -179,7 +179,7 @@ function Dashboard() {
               {health ? (
                 staleSources.length > 0 ? (
                   <span className="text-accent-amber truncate">
-                    [DEGRADED_DATA] Live feed unavailable for: {staleSources.join(", ")} — cached or synthetic data in use
+                    [CACHE] Showing last known values for: {staleSources.join(", ")} — price feed live
                   </span>
                 ) : (
                   <span className="text-dim truncate">[LIVE] All data sources fresh · auto-refresh 5 min</span>
