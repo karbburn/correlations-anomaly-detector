@@ -127,6 +127,7 @@ function Dashboard() {
         <div
           className="min-h-screen bg-background text-foreground"
           inert={showMethodology || undefined}
+          aria-hidden={showMethodology || undefined}
         >
           {/* Skip to content link for keyboard users */}
           <a
