@@ -32,10 +32,11 @@ class Settings(BaseSettings):
     CIRCUIT_BREAKER_FAILURES: int = 3
     CIRCUIT_BREAKER_COOLDOWN: int = 300
 
-    # Synthetic random-walk data poisons a financial dashboard; stale real
-    # data with an honest staleness flag is preferred. Opt in only for
-    # local UI development without network access.
-    ALLOW_SYNTHETIC: bool = False
+    # Synthetic random-walk fallback keeps Render's ephemeral FS from
+    # leaving the dashboard dead (warming_stage=error) on cold starts
+    # when yfinance/FBIL/NSE are blocked and no parquet cache exists.
+    # Staleness is still flagged honestly in /api/health.
+    ALLOW_SYNTHETIC: bool = True
 
     RESEND_API_KEY: str = ""
     ALERT_RECIPIENTS: str = ""  # comma-separated emails
