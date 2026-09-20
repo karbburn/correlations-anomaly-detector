@@ -279,6 +279,8 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://correlations-anomaly-detector.onrender.com" />
+        <link rel="dns-prefetch" href="https://correlations-anomaly-detector.onrender.com" />
         <link rel="canonical" href={SITE_URL} />
         <link rel="author" href={PORTFOLIO_URL} />
         <meta name="author" content="Sourabh Pradhan" />
