@@ -80,8 +80,8 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
           const idx = i * assets.length + j;
           const cell = root.selectAll<SVGGElement, unknown>(`g.cell-${idx}`);
           if (cell.empty()) return;
-          cell.select("rect.anomaly-frame").attr("stroke", isAnomaly ? accentAmber : "none").attr("stroke-width", isAnomaly ? 2 : 0).style("display", isAnomaly ? null : "none");
-          cell.selectAll("polygon.anomaly-corner").style("display", isAnomaly ? null : "none");
+          cell.select("rect.anomaly-frame").attr("stroke", isAnomaly ? accentAmber : "none").attr("stroke-width", isAnomaly ? 2 : 0).style("display", isAnomaly ? "" : "none");
+          cell.selectAll("polygon.anomaly-corner").style("display", isAnomaly ? "" : "none");
           cell.select("text.z-label").attr("fill", isAnomaly ? accentAmber : textMuted);
           if (isAnomaly) {
             cell.select("rect.anomaly-frame").selectAll("animate").empty() || (() => {})();
@@ -227,7 +227,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("fill", "none")
             .attr("stroke", isAnomaly ? accentAmber : "none")
             .attr("stroke-width", isAnomaly ? 2 : 0)
-            .style("display", isAnomaly ? null : "none");
+            .style("display", isAnomaly ? "" : "none");
 
           if (!prefersReducedMotion && isAnomaly) {
             anomalyRect
@@ -243,7 +243,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
             .attr("class", "anomaly-corner")
             .attr("points", `${cellSize - 15},0 ${cellSize - 2},0 ${cellSize - 2},13`)
             .attr("fill", accentAmber)
-            .style("display", isAnomaly ? null : "none");
+            .style("display", isAnomaly ? "" : "none");
         }
 
         if (!isDiag) {

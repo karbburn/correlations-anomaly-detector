@@ -4,7 +4,6 @@ import { select } from "d3-selection";
 import { useAppStore } from "@/lib/store";
 import { getCssVarCached } from "@/lib/css";
 import { getTokenFallback } from "@/lib/tokens";
-import { useMemo } from "react";
 import { parseLocalDate } from "@/lib/date";
 
 const PAIR_LABELS: Record<string, string> = {
