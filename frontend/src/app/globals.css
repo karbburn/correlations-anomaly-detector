@@ -86,3 +86,13 @@ body {
   color: var(--text-primary);
   font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse {
+    animation: none !important;
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: none !important;
+  }
+}
