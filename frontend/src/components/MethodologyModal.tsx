@@ -75,7 +75,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Methodology"
-        className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-background border border-border-muted p-6 sm:p-8 font-mono text-xs text-secondary rounded-none shadow-2xl focus:outline-none"
+        className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-background border border-border-muted p-6 sm:p-8 font-mono text-sm leading-relaxed text-secondary rounded-none shadow-2xl focus:outline-none"
       >
         {/* Close */}
         <button
@@ -86,13 +86,13 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           [×]
         </button>
 
-        <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-6">
+        <h2 className="text-base font-bold text-foreground uppercase tracking-wider mb-6">
           [METHODOLOGY]
         </h2>
 
         {/* Section 1: Rolling Correlation */}
         <section className="mb-6">
-          <h3 className="text-[11px] font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
+          <h3 className="text-xs sm:text-sm font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
             1. Rolling Pearson Correlation
           </h3>
           <p className="leading-relaxed mb-2">
@@ -116,7 +116,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
 
         {/* Section 2: Z-Score Normalization */}
         <section className="mb-6">
-          <h3 className="text-[11px] font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
+          <h3 className="text-xs sm:text-sm font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
             2. Z-Score Normalization
           </h3>
           <p className="leading-relaxed mb-2">
@@ -140,7 +140,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
 
         {/* Section 3: Anomaly Detection */}
         <section className="mb-6">
-          <h3 className="text-[11px] font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
+          <h3 className="text-xs sm:text-sm font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
             3. Anomaly Detection
           </h3>
           <p className="leading-relaxed mb-2">
@@ -159,7 +159,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
 
         {/* Section 4: Regime Classification */}
         <section className="mb-6">
-          <h3 className="text-[11px] font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
+          <h3 className="text-xs sm:text-sm font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
             4. Regime Classification
           </h3>
           <p className="leading-relaxed mb-2">
@@ -197,7 +197,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
 
         {/* Section 5: Data Sources */}
         <section>
-          <h3 className="text-[11px] font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
+          <h3 className="text-xs sm:text-sm font-bold text-accent-primary uppercase tracking-wider mb-2 border-b border-border-muted pb-1">
             5. Data Sources
           </h3>
           <table className="w-full text-[10px] border border-border-muted">

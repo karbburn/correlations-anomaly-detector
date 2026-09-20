@@ -147,7 +147,7 @@ function Dashboard() {
                       Anomaly Detector
                     </span>
                   </h1>
-                  <p className="text-xs text-dim mt-0.5">
+                  <p className="text-sm text-dim mt-0.5">
                     {matrixData
                       ? `As of ${matrixData.as_of_date} · ${matrixData.window}D rolling window`
                       : "Loading..."}
