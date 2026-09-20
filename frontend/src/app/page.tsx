@@ -306,19 +306,31 @@ function Dashboard() {
 
           {/* Footer */}
           <footer className="border-t border-border-muted mt-12 bg-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between font-mono text-[10px] text-dim">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[10px] text-dim">
               <p>
                 Cross-Asset Correlations Anomaly Detector
               </p>
-              <a
-                href="https://www.linkedin.com/in/sourabh-pradhan07/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Sourabh Pradhan on LinkedIn"
-                className="text-accent-primary font-semibold tracking-wider hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
-              >
-                Sourabh
-              </a>
+              <div className="flex items-center gap-3">
+                <a
+                  href="https://sourabhpradhan.in"
+                  target="_blank"
+                  rel="noopener noreferrer author"
+                  aria-label="Sourabh Pradhan portfolio"
+                  className="text-accent-primary font-semibold tracking-wider hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                >
+                  sourabhpradhan.in
+                </a>
+                <span className="text-border-muted">|</span>
+                <a
+                  href="https://www.linkedin.com/in/sourabh-pradhan07/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Sourabh Pradhan on LinkedIn"
+                  className="text-accent-primary font-semibold tracking-wider hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+                >
+                  LinkedIn
+                </a>
+              </div>
               <p>
                 Data: yfinance &middot; FBIL &middot; NSE
               </p>

@@ -25,6 +25,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      // GEO: enforce canonical host consistency if ever served on vercel legacy
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "corrshift.vercel.app" }],
+        destination: "https://corrshift.sourabhpradhan.in/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -32,6 +43,15 @@ const nextConfig: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+          // SEO: allow indexing, canonical is set via metadata + link tag
+          { key: "X-Robots-Tag", value: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
           {
             key: "Content-Security-Policy",
             value: [
@@ -39,15 +59,20 @@ const nextConfig: NextConfig = {
               // unsafe-eval is only needed for React Refresh in development.
               `script-src 'self'${isDev ? " 'unsafe-eval'" : ""} 'unsafe-inline'`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
+              "img-src 'self' data: blob: https://corrshift.sourabhpradhan.in https://sourabhpradhan.in",
               "font-src 'self' data:",
               `connect-src 'self' ${backendOrigin}`,
               "form-action 'none'",
-              "frame-ancestors 'self' https://www.sourabhpradhan.in https://sourabhpradhan.in",
+              "frame-ancestors 'self' https://corrshift.sourabhpradhan.in https://www.sourabhpradhan.in https://sourabhpradhan.in",
               "base-uri 'none'",
             ].join("; "),
           },
         ],
+      },
+      {
+        // Cache static assets aggressively; keep HTML fresh for SEO
+        source: "/:all*(svg|png|jpg|jpeg|webp|avif|ico|woff2)",
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
     ];
   },

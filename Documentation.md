@@ -1,4 +1,4 @@
-# [CORRSHIFT](https://corrshift.vercel.app)
+# [CORRSHIFT](https://corrshift.sourabhpradhan.in)
 
 ---
 
@@ -297,7 +297,7 @@ When configured, a weekly HTML digest is sent every Monday at 08:00 IST (configu
 |----------|----------|---------|-------------|
 | `HOST` | No | `0.0.0.0` | Server bind address |
 | `PORT` | No | `8000` | Server port |
-| `ALLOWED_ORIGINS` | Yes | `http://localhost:3000` | Comma-separated CORS origins |
+| `ALLOWED_ORIGINS` | Yes | `http://localhost:3000,https://corrshift.sourabhpradhan.in,https://sourabhpradhan.in,https://www.sourabhpradhan.in` | Comma-separated CORS origins |
 | `DATA_START_DATE` | No | `2020-01-01` | Historical data start date |
 | `CACHE_DIR` | No | `data/cache` | Parquet cache directory |
 | `DEFAULT_WINDOW` | No | `60` | Default rolling window (days) |
@@ -312,7 +312,7 @@ When configured, a weekly HTML digest is sent every Monday at 08:00 IST (configu
 | `ALERT_RECIPIENTS` | No | — | Comma-separated email recipients |
 | `ALERT_SCHEDULE_CRON` | No | `0 8 * * 1` | Cron expression for digest schedule |
 | `SCHEDULER_TIMEZONE` | No | `Asia/Kolkata` | Timezone applied to the digest cron schedule |
-| `DASHBOARD_URL` | No | `http://localhost:3000` | Link in digest emails |
+| `DASHBOARD_URL` | No | `https://corrshift.sourabhpradhan.in` | Link in digest emails |
 
 ### Frontend Environment Variable
 

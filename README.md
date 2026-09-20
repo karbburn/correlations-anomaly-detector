@@ -1,4 +1,4 @@
-# [CorrShift](https://corrshift.vercel.app)
+# [CorrShift](https://corrshift.sourabhpradhan.in)
 
 **Cross-Asset Correlation Intelligence Platform**
 
@@ -182,16 +182,17 @@ python detect.py --window 252 --threshold 2.5 --output alerts.csv
 1. Create a new **Web Service** on [Render](https://render.com) with **Docker** environment.
 2. Set **Root Directory** to `backend`.
 3. Set **Health Check Path** to `/api/health`.
-4. Add environment variables from `backend/.env` — set `ALLOWED_ORIGINS` to your Vercel URL.
+4. Add environment variables from `backend/.env` — set `ALLOWED_ORIGINS` to `https://corrshift.sourabhpradhan.in` (and `https://sourabhpradhan.in` if embedding).
 5. Deploy. The server pre-warms on startup (~60-90s).
 
-### Frontend (Vercel)
+### Frontend (Vercel / Custom Domain)
 
 1. Import the repository in [Vercel](https://vercel.com).
 2. Set **Root Directory** to `frontend`.
-3. Deploy.
+3. Add custom domain `corrshift.sourabhpradhan.in` in Vercel → Settings → Domains (CNAME to `cname.vercel-dns.com`).
+4. Deploy. The `next.config.ts` redirect automatically forwards `corrshift.vercel.app` → `https://corrshift.sourabhpradhan.in` (301).
 
-> After deployment, update the backend `ALLOWED_ORIGINS` on Render to include the Vercel URL.
+> After deployment, verify backend `ALLOWED_ORIGINS` on Render includes `https://corrshift.sourabhpradhan.in,https://sourabhpradhan.in,https://www.sourabhpradhan.in`.
 
 ---
 
@@ -203,7 +204,7 @@ python detect.py --window 252 --threshold 2.5 --output alerts.csv
 |----------|---------|-------------|
 | `HOST` | `0.0.0.0` | Server bind address |
 | `PORT` | `8000` | Server port |
-| `ALLOWED_ORIGINS` | `http://localhost:3000` | Comma-separated CORS origins |
+| `ALLOWED_ORIGINS` | `http://localhost:3000,https://corrshift.sourabhpradhan.in,https://sourabhpradhan.in,https://www.sourabhpradhan.in` | Comma-separated CORS origins |
 | `DATA_START_DATE` | `2020-01-01` | Historical data start date |
 | `CACHE_DIR` | `data/cache` | Parquet cache directory |
 | `DEFAULT_WINDOW` | `60` | Default rolling window (days) |

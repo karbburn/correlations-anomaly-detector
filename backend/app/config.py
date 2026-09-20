@@ -16,7 +16,7 @@ class Settings(BaseSettings):
 
     APP_ENV: str = "development"
 
-    ALLOWED_ORIGINS: str = "http://localhost:3000"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,https://corrshift.sourabhpradhan.in,https://sourabhpradhan.in,https://www.sourabhpradhan.in"
 
     DATA_START_DATE: str = "2020-01-01"
     CACHE_DIR: str = "data/cache"
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     ALERT_RECIPIENTS: str = ""  # comma-separated emails
     ALERT_SCHEDULE_CRON: str = "0 8 * * 1"  # Monday 8 AM
     SCHEDULER_TIMEZONE: str = "Asia/Kolkata"
-    DASHBOARD_URL: str = "http://localhost:3000"
+    DASHBOARD_URL: str = "https://corrshift.sourabhpradhan.in"
 
     @property
     def alert_recipients_list(self) -> list[str]:
