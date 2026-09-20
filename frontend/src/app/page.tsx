@@ -337,14 +337,13 @@ function Dashboard() {
               </p>
             </div>
           </footer>
-
-          {/* Methodology Modal */}
-          <MethodologyModal
-            isOpen={showMethodology}
-            onClose={() => setShowMethodology(false)}
-          />
         </div>
       )}
+      {/* Methodology Modal — outside inert wrapper so it remains interactive */}
+      <MethodologyModal
+        isOpen={showMethodology}
+        onClose={() => setShowMethodology(false)}
+      />
     </>
   );
 }

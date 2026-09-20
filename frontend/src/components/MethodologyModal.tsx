@@ -76,17 +76,17 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
           role="dialog"
           aria-modal="true"
           aria-label="Methodology"
-          className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-background border border-border-muted p-6 sm:p-8 font-mono text-sm leading-relaxed text-secondary rounded-none shadow-2xl focus:outline-none"
+          className="relative w-full max-w-2xl max-h-[85vh] flex flex-col bg-background border border-border-muted rounded-none shadow-2xl focus:outline-none"
           style={{ WebkitOverflowScrolling: "touch" } as React.CSSProperties}
         >
-        {/* Close */}
-        <button
-          onClick={onClose}
-          aria-label="Close methodology modal"
-          className="absolute top-4 right-4 text-dim hover:text-foreground text-sm font-bold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary"
-        >
-          [×]
-        </button>
+          <button
+            onClick={onClose}
+            aria-label="Close methodology modal"
+            className="absolute top-4 right-4 z-10 text-dim hover:text-foreground text-sm font-bold cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-primary bg-background/80 backdrop-blur-sm px-1"
+          >
+            [×]
+          </button>
+          <div className="overflow-y-auto p-6 sm:p-8 font-mono text-sm leading-relaxed text-secondary min-h-0">
 
         <h2 className="text-base font-bold text-foreground uppercase tracking-wider mb-6">
           [METHODOLOGY]
@@ -234,6 +234,7 @@ export function MethodologyModal({ isOpen, onClose }: MethodologyModalProps) {
             DataQualityError.
           </p>
         </section>
+          </div>
         </div>
       </div>
     </div>
