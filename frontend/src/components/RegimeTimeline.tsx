@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, memo, useMemo } from "react";
-import * as d3 from "d3";
+import { select } from "d3-selection";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
 import { parseLocalDate } from "@/lib/date";
@@ -86,7 +86,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
     const width = sampledDates.length * cellW + margin.left + margin.right;
     const height = pairs.length * cellH + margin.top + margin.bottom;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
     svg.attr("role", "img");

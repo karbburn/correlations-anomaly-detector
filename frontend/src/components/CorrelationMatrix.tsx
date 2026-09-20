@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useCallback, memo } from "react";
-import * as d3 from "d3";
+import { select } from "d3-selection";
+import { scaleLinear } from "d3-scale";
 import { ASSET_LABELS } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
 import { getCssVar } from "@/lib/css";
@@ -41,7 +42,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const width = n * cellSize + margin.left + margin.right;
     const height = n * cellSize + margin.top + margin.bottom;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
     svg.attr("viewBox", `0 0 ${width} ${height}`);
     svg.attr("role", "group");
@@ -58,12 +59,12 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const corrNegative = getCssVar("--corr-negative") || (theme === "light" ? "#9a3412" : "#c2410c");
     const corrPositive = getCssVar("--corr-positive") || (theme === "light" ? "#2563eb" : "#60a5fa");
 
-    const colorScale = d3.scaleLinear<string>()
+    const colorScale = scaleLinear<string>()
       .domain([-1, 0, 1])
       .range([corrNegative, bgElevated, corrPositive]);
 
     const highlightCell = function (this: SVGGElement) {
-      d3.select(this)
+      select(this)
         .select("rect")
         .transition()
         .duration(150)
@@ -72,7 +73,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("stroke-width", 1.5);
     };
     const focusCell = function (this: SVGGElement) {
-      d3.select(this)
+      select(this)
         .select("rect")
         .transition()
         .duration(150)
@@ -83,7 +84,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const restCell =
       (isAnomaly: boolean) =>
       function (this: SVGGElement) {
-        d3.select(this)
+        select(this)
           .select("rect")
           .transition()
           .duration(150)
