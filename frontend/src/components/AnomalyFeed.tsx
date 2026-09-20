@@ -34,26 +34,25 @@ function AnomalyRow({ alert, index, pageOffset, isExpanded, onToggle }: AnomalyR
   );
 
   return (
-    <tr key={index} className="group">
+    <tr
+      role="button"
+      tabIndex={0}
+      aria-expanded={isExpanded}
+      aria-label={`${alert.asset1} vs ${alert.asset2}, z-score ${alert.zscore.toFixed(2)}, ${isExpanded ? "expanded" : "collapsed"}`}
+      onClick={() => onToggle(index)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onToggle(index);
+        }
+      }}
+      className={clsx(
+        "group cursor-pointer hover:bg-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary",
+        isExpanded && "bg-elevated/50"
+      )}
+    >
       <td colSpan={5} className="p-0">
-        <div
-          role="button"
-          tabIndex={0}
-          aria-expanded={isExpanded}
-          aria-label={`${alert.asset1} vs ${alert.asset2}, z-score ${alert.zscore.toFixed(2)}, ${isExpanded ? 'expanded' : 'collapsed'}`}
-          onClick={() => onToggle(index)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onToggle(index);
-            }
-          }}
-          className={clsx(
-            "grid grid-cols-5 hover:bg-elevated transition-colors cursor-pointer",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent-primary",
-            isExpanded && "bg-elevated/50"
-          )}
-        >
+        <div className="grid grid-cols-5">
           <span className="px-3 py-2 text-muted tabular-nums">
             {alert.date}
           </span>
