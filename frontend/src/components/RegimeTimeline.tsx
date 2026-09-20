@@ -200,7 +200,7 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
 
   return (
     <div className="overflow-x-auto">
-      <svg ref={svgRef} className="w-full h-auto min-w-[600px]" />
+      <svg ref={svgRef} className="w-full h-auto min-w-[420px] sm:min-w-[600px]" />
     </div>
   );
 })

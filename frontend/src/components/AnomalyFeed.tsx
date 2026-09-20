@@ -241,7 +241,7 @@ export function AnomalyFeed() {
       ) : (
         <>
           <div className="overflow-auto max-h-80">
-            <table className="w-full min-w-[540px] text-xs text-left">
+            <table className="w-full min-w-[420px] sm:min-w-[540px] text-xs text-left">
               <thead className="sticky top-0 bg-card z-10 border-b border-border-muted">
                 <tr>
                   {["Date", "Pair", "Corr", "Z-score", "Regime"].map((h) => (
