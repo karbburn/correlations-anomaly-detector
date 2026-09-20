@@ -119,6 +119,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
         .attr("stroke-width", 1.5);
     };
     const focusCell = function (this: SVGGElement) {
+      select(this).classed("is-focused", true);
       select(this)
         .select("rect")
         .transition()
@@ -130,6 +131,7 @@ export const CorrelationMatrix = memo(function CorrelationMatrix({
     const restCell =
       (isAnomaly: boolean) =>
       function (this: SVGGElement) {
+        select(this).classed("is-focused", false);
         select(this)
           .select("rect")
           .transition()

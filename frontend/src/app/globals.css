@@ -96,3 +96,8 @@ body {
     backdrop-filter: none !important;
   }
 }
+
+.is-focused {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
