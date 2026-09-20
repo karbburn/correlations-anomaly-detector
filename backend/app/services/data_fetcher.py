@@ -93,14 +93,25 @@ def fetch_yfinance_prices(start: str, end: Optional[str] = None) -> pd.DataFrame
 
     logger.info(f"Fetching yfinance prices [{start} -> {end}]...")
     try:
-        data = yf.download(
-            YFINANCE_TICKERS,
+        session = None
+        try:
+            from curl_cffi import requests as crequests  # type: ignore
+
+            session = crequests.Session(impersonate="chrome")
+        except Exception:
+            session = None
+        dl_kwargs: dict = dict(
+            tickers=YFINANCE_TICKERS,
             start=start,
             end=end,
             auto_adjust=True,
             progress=False,
             timeout=YFINANCE_TIMEOUT,
+            threads=False,
         )
+        if session is not None:
+            dl_kwargs["session"] = session
+        data = yf.download(**dl_kwargs)  # type: ignore[arg-type]
         if data.empty:
             raise DataUnavailableError("yfinance returned empty DataFrame")
 
