@@ -3,6 +3,7 @@ import { useEffect, useRef, memo, useMemo } from "react";
 import { select } from "d3-selection";
 import { useAppStore } from "@/lib/store";
 import { getCssVarCached } from "@/lib/css";
+import { getTokenFallback } from "@/lib/tokens";
 import { useMemo } from "react";
 import { parseLocalDate } from "@/lib/date";
 
@@ -57,12 +58,12 @@ export const RegimeTimeline = memo(function RegimeTimeline({ pairs, dates, corre
   }, [pairs, correlations, zscores, threshold]);
 
   const themeVars = useMemo(() => ({
-    accentAmber: getCssVarCached("--accent-amber", theme, theme === "light" ? "#b45309" : "#f59e0b"),
-    bgSurface: getCssVarCached("--bg-surface", theme, theme === "light" ? "#e4dfd6" : "#112a20"),
-    textMuted: getCssVarCached("--text-muted", theme, theme === "light" ? "#6b6b6b" : "#5eead4"),
-    textDim: getCssVarCached("--text-dim", theme, theme === "light" ? "#999999" : "#2dd4bf"),
-    corrNegative: getCssVarCached("--corr-negative", theme, theme === "light" ? "#9a3412" : "#c2410c"),
-    corrPositive: getCssVarCached("--corr-positive", theme, theme === "light" ? "#2563eb" : "#60a5fa"),
+    accentAmber: getCssVarCached("--accent-amber", theme, getTokenFallback("--accent-amber", theme as "light" | "dark")),
+    bgSurface: getCssVarCached("--bg-surface", theme, getTokenFallback("--bg-surface", theme as "light" | "dark")),
+    textMuted: getCssVarCached("--text-muted", theme, getTokenFallback("--text-muted", theme as "light" | "dark")),
+    textDim: getCssVarCached("--text-dim", theme, getTokenFallback("--text-dim", theme as "light" | "dark")),
+    corrNegative: getCssVarCached("--corr-negative", theme, getTokenFallback("--corr-negative", theme as "light" | "dark")),
+    corrPositive: getCssVarCached("--corr-positive", theme, getTokenFallback("--corr-positive", theme as "light" | "dark")),
   }), [theme]);
 
   useEffect(() => {

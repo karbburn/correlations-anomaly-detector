@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useAppStore } from "@/lib/store";
 import { getCssVarCached } from "@/lib/css";
+import { getTokenFallback } from "@/lib/tokens";
 import { parseLocalDate } from "@/lib/date";
 import { useMemo } from "react";
 
@@ -40,13 +41,13 @@ export function PairDrilldown({ asset1, asset2, data, threshold, onClose }: Prop
   }));
 
   const themeVars = useMemo(() => ({
-    gridColor: getCssVarCached("--border-default", theme, isDark ? "#1a3a2e" : "#d4cfc6"),
-    tickColor: getCssVarCached("--text-dim", theme, isDark ? "#2dd4bf" : "#6b6b6b"),
-    tooltipBg: getCssVarCached("--bg-primary", theme, isDark ? "#060d0a" : "#ffffff"),
-    tooltipBorder: getCssVarCached("--border-default", theme, isDark ? "#1a3a2e" : "#d4cfc6"),
-    accentPrimary: getCssVarCached("--accent-primary", theme, isDark ? "#10b981" : "#047857"),
-    accentAmber: getCssVarCached("--accent-amber", theme, isDark ? "#f59e0b" : "#b45309"),
-    accentRed: getCssVarCached("--accent-red", theme, isDark ? "#ef4444" : "#dc2626"),
+    gridColor: getCssVarCached("--border-default", theme, getTokenFallback("--border-default", theme as "light" | "dark")),
+    tickColor: getCssVarCached("--text-dim", theme, getTokenFallback("--text-dim", theme as "light" | "dark")),
+    tooltipBg: getCssVarCached("--bg-primary", theme, getTokenFallback("--bg-primary", theme as "light" | "dark")),
+    tooltipBorder: getCssVarCached("--border-default", theme, getTokenFallback("--border-default", theme as "light" | "dark")),
+    accentPrimary: getCssVarCached("--accent-primary", theme, getTokenFallback("--accent-primary", theme as "light" | "dark")),
+    accentAmber: getCssVarCached("--accent-amber", theme, getTokenFallback("--accent-amber", theme as "light" | "dark")),
+    accentRed: getCssVarCached("--accent-red", theme, getTokenFallback("--accent-red", theme as "light" | "dark")),
   }), [theme, isDark]);
   const { gridColor, tickColor, tooltipBg, tooltipBorder, accentPrimary, accentAmber, accentRed } = themeVars;
 
